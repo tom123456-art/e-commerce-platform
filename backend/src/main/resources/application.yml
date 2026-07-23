@@ -1,0 +1,139 @@
+# Spring 环境配置、安全认证、AI大模型、缓存统一配置
+spring:
+  # 多环境配置管理
+  profiles:
+    active: dev        # 激活开发环境配置文件 application-dev.yml
+    include: local     # 额外加载本地私有配置 application-local.yml，存放密钥、第三方key等敏感信息
+  # Spring Security 内置基础账号（备用登录账号，优先使用数据库用户）
+  security:
+    user:
+      name: ${ADMIN_USERNAME:} # 环境变量读取管理员账号，无变量则为空
+      password: ${ADMIN_PASSWORD:} # 环境变量读取管理员密码，无变量则为空
+  # Spring AI 大模型相关配置
+  ai:
+    model:
+      chat: ${SPRING_AI_CHAT_MODEL:none} # 指定对话模型，无环境变量时设为none，避免无key启动报错
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-placeholder} # OpenAI密钥，无环境变量使用占位符
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com} # 大模型接口地址，默认官方地址
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini} # 使用的大模型名称，默认轻量版gpt-4o-mini
+          temperature: 0.4 # 生成文本随机性，数值越低回答越严谨、一致性越高
+  # Redis缓存配置
+  cache:
+    type: redis # 指定缓存实现使用Redis
+    redis:
+      time-to-live: 1800000   # 缓存过期时长，单位毫秒，1800000=30分钟
+      cache-null-values: false # 不缓存空值，减少无效缓存占用
+
+# 服务运行端口配置
+server:
+  port: 8080 # 后端服务监听端口
+
+# 项目文件上传自定义配置
+app:
+  upload:
+    dir: uploads # 本地文件上传存储根目录，项目根下uploads文件夹
+    url-prefix: /uploads # 静态资源访问前缀，前端通过该路径访问上传文件
+
+# MyBatis持久层框架配置
+mybatis:
+  mapper-locations: classpath:mappers/*.xml # 扫描resources/mappers下所有SQL映射文件
+  type-aliases-package: com.example.ecommerce.entity # 实体类别名包，XML中可直接写实体类名不用全限定名
+
+# SpringDoc OpenAPI3 接口文档（Swagger）配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs # 后端原始JSON接口文档地址
+  swagger-ui:
+    path: /swagger-ui.html # 前端可视化接口文档访问地址
+    tags-sorter: alpha # 接口标签按字母顺序排序
+    operations-sorter: alpha # 接口方法按字母顺序排序
+  # 接口分组配置，按业务模块拆分文档
+  group-configs:
+    - group: 用户接口 # 分组名称：用户相关登录、注册、个人信息接口
+      paths-to-match: /api/auth/**, /api/users/** # 匹配该分组下所有接口路径
+    - group: 商品接口 # 分组名称：商品管理、商品查询接口
+      paths-to-match: /api/products/**
+    - group: 订单接口 # 分组名称：购物车、收货地址、订单相关接口
+      paths-to-match: /api/orders/**, /api/cart/**, /api/addresses/**
+    - group: 支付接口 # 分组名称：支付宝支付、支付回调接口
+      paths-to-match: /api/payment/**
+    - group: AI 接口 # 分组名称：单词学习、AI问答相关接口
+      paths-to-match: /api/ai/**
+    - group: 管理后台 # 分组名称：后台管理、Excel导入导出、文件上传接口
+      paths-to-match: /api/admin/**, /api/excel/**, /api/upload/**
+
+# SpringBoot Actuator 服务监控健康检查配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics # 对外暴露的监控端点：健康状态、服务信息、指标监控
+  endpoint:
+    health:
+      show-details: when-authorized # 仅授权用户查看完整健康详情，匿名用户仅展示简单状态
+
+# 电商业务自定义全局配置
+ecommerce:
+  # 登录认证Token配置
+  auth:
+    token-expire-seconds: 7200    # JWT 令牌过期时间，单位秒，7200=2小时
+    admin-username: admin # 后台默认管理员账号
+  # RabbitMQ消息队列配置
+  rabbit:
+    enabled: true # 是否开启消息队列总开关
+    listener-enabled: false        # 开发环境默认关闭消息消费者监听，避免本地重复消费
+    exchange: ecommerce.event.exchange # 业务事件主交换机名称
+    retry-exchange: ecommerce.event.retry.exchange # 消息重试交换机
+    dead-letter-exchange: ecommerce.event.dead-letter.exchange # 死信交换机，存放处理失败消息
+    order-created-queue: ecommerce.order.created # 订单创建消息队列
+    payment-status-queue: ecommerce.payment.status # 支付状态变更消息队列
+    retry-ttl-ms: 30000 # 消息重试等待时长，30秒后重新投递
+    max-retries: 3 # 消息最大重试次数，超过转入死信队列
+  # 支付宝支付配置
+  payment:
+    alipay:
+      enabled: false # 是否开启真实支付宝支付，开发环境关闭
+      mock-enabled: true          # 开发环境开启模拟支付，无需真实调用支付宝网关
+      app-id: # 支付宝应用ID，生产环境填写
+      private-key: # 商户私钥，用于请求签名
+      public-key: # 支付宝公钥，用于回调验签
+      gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do # 支付宝沙箱网关地址
+      notify-url: http://localhost:8080/api/payment/callback # 支付异步回调后端接口地址
+      return-url: http://localhost:3000/orders # 支付完成前端跳转页面地址
+  # AI单词学习业务配置
+  ai:
+    assistant-name: AI 教学助教 # AI助手展示名称
+    course-name: SpringBoot + Vue 前后分离电商平台 # 系统课程名称，用于AI问答上下文
+    template-fallback: true        # 无有效OpenAI Key时，使用本地预设模板回复，防止功能崩溃
+  # 商品推荐权重算法配置
+  showcase:
+    cart-preference-weight: 0.60 # 购物车偏好权重，个性化推荐核心权重
+    # 热门商品综合打分权重
+    hot:
+      sales: 0.55 # 销量权重占比55%
+      revenue: 0.15 # 销售额权重占比15%
+      orders: 0.15 # 下单订单数权重占比15%
+      freshness: 0.10 # 商品上新新鲜度权重占比10%
+      inventory: 0.05 # 库存充足度权重占比5%
+    # 匿名游客推荐权重
+    anonymous:
+      hot: 0.50 # 热门商品权重50%
+      freshness: 0.25 # 上新新鲜度权重25%
+      inventory: 0.15 # 库存权重15%
+      affordability: 0.10 # 价格亲民度权重10%
+    # 登录用户个性化推荐权重
+    personalized:
+      category: 0.50 # 用户历史浏览类目权重50%
+      hot: 0.25 # 商品热门度权重25%
+      price: 0.10 # 用户偏好价格区间权重10%
+      freshness: 0.10 # 新品权重10%
+      inventory: 0.05 # 库存权重5%
+    # 商品热度信号计算权重
+    hot-signal:
+      sales: 0.50 # 销量热度权重50%
+      revenue: 0.20 # 营收热度权重20%
+      orders: 0.20 # 订单数量热度权重20%
+      freshness: 0.10 # 上新热度权重10%

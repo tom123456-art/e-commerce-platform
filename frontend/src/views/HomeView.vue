@@ -1,20 +1,22 @@
 <template>
   <div class="home">
+    <h1>欢迎来到电商平台</h1>
+    <p>这是一个SpringBoot+Vue3前后端分离的项目</p>
     <div class="features">
       <div class="feature-card">
-        <h3>商品预览</h3>
+        <h3>🛍️商品预览</h3>
         <p>浏览热卖商品和个性化推荐</p>
       </div>
       <div class="feature-card">
-        <h3>购物车</h3>
+        <h3>🛒购物车</h3>
         <p>加入购物车，一键结算</p>
       </div>
       <div class="feature-card">
-        <h3>订单管理</h3>
+        <h3>📦订单管理</h3>
         <p>查看订单状态，确认收货</p>
       </div>
       <div class="feature-card">
-        <h3>AI助手</h3>
+        <h3>🤖AI助手</h3>
         <p>智能问答、搜索、推荐</p>
       </div>
     </div>

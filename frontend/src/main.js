@@ -4,7 +4,7 @@ import 'element-plus/dist/index.css'
 
 import App from './App.vue'
 import router from './router'
-import './style.css'
+import './styles.css'
 
 
 // createApp(App).mount('#app')

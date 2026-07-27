@@ -58,6 +58,7 @@ public class GlobalExceptionHandler {
                 .body(Result.failure(Result.BAD_REQUEST_CODE, extractMessage(ex)));
     }
 
+
     /**
      * 处理认证异常（未登录）。
      * Spring Security 在用户未携带 Token 或 Token 过期时抛出。

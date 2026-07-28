@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  UserMapper.xml —— 用户表的 MyBatis 映射文件。
+
+  namespace 必须与 UserMapper 接口的全限定名完全一致，
+  MyBatis 据此将接口方法与 SQL 语句一一绑定。
+
+  关键概念：
+    1. resultMap：定义数据库列名与 Java 属性名的映射关系
+    2. <sql> 片段：可复用的列名列表，通过 <include> 引用
+    3. #{} 预编译占位符：会被替换为 ?，防止 SQL 注入（推荐）
+    4. ${} 字符串替换：直接拼接到 SQL 中，有注入风险（慎用）
+    5. useGeneratedKeys + keyProperty：插入后回填自增主键
+-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.UserMapper">
+
+    <!--
+      resultMap：结果映射配置
+      解决"数据库列名（snake_case）"与"Java 属性名（camelCase）"不一致的问题。
+      <id> 标签标记主键列，<result> 标签标记普通列。
+      column 是数据库列名，property 是 Java 属性名。
+    -->
+    <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.User">
+        <id column="id" property="id" />                          <!-- 主键列 -->
+        <!-- ctrl+d 复制光标行 ctrl+y 删除光标行 -->
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="nickname" property="nickname" />
+        <result column="email" property="email" />
+        <result column="phone" property="phone" />
+        <result column="role" property="role" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />     <!-- 下划线→驼峰 -->
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!--
+      SQL 片段：可复用的列名列表。
+      在多个 <select> 中通过 <include refid="Base_Column_List" /> 引用。
+      好处：避免重复编写列名，表结构变化时只需修改一处。
+    -->
+    <sql id="Base_Column_List">
+        id, username, password, nickname, email, phone, role, status, create_time, update_time
+    </sql>
+
+    <!--
+      selectById：根据 ID 查询用户
+      绑定方法：UserMapper.selectById(Long id)
+      <include refid="Base_Column_List" /> 展开为所有列名
+      #{id} 会被替换为 ?，参数值来自方法参数
+    -->
+    <select id="selectById" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from user
+        where id = #{id}
+    </select>
+
+    <!--
+      selectByUsername：根据用户名查询
+      用于登录验证和注册时检查用户名是否已存在
+    -->
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from user
+        where username = #{username}
+    </select>
+
+    <!-- selectAll：查询所有用户，无 WHERE 条件 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from user
+    </select>
+
+    <!--
+      countAll：统计用户总数
+      resultType="long"：返回值直接映射为 Java long 类型，无需 resultMap
+      （resultType 用于简单类型，resultMap 用于复杂对象映射）
+    -->
+    <select id="countAll" resultType="long">
+        select count(1)
+        from user
+    </select>
+
+    <!--
+      insert：插入新用户
+      useGeneratedKeys="true" keyProperty="id"：
+        启用数据库自增主键功能，插入后自动将主键值回填到 user.id 属性
+      now()：MySQL 内置函数，返回当前时间，自动填充 create_time 和 update_time
+      #{username} 等：从 User 对象的对应属性取值
+    -->
+    <insert id="insert" parameterType="com.example.ecommerce.entity.User"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into user (username, password, nickname, email, phone, role, status, create_time, update_time)
+        values (#{username}, #{password}, #{nickname}, #{email}, #{phone}, #{role}, #{status}, now(), now())
+    </insert>
+
+    <!--
+      update：全字段更新
+      WHERE id = #{id} 按主键定位记录
+      update_time = now() 自动更新修改时间
+    -->
+    <update id="update" parameterType="com.example.ecommerce.entity.User">
+        update user
+        set username = #{username},
+            password = #{password},
+            nickname = #{nickname},
+            email = #{email},
+            phone = #{phone},
+            role = #{role},
+            status = #{status},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <!--
+      updatePassword：单独更新密码（部分更新）
+      #{id} 来自 @Param("id") Long id
+      #{password} 来自 @Param("password") String password
+    -->
+    <update id="updatePassword">
+        update user
+        set password = #{password},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+    <!-- delete：物理删除用户记录 -->
+    <delete id="delete" parameterType="java.lang.Long">
+        delete from user
+        where id = #{id}
+    </delete>
+
+</mapper>

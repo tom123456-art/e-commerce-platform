@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.ReviewMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.Review">
+            <id property="id" column="id" />
+            <result property="productId" column="product_id" />
+            <result property="userId" column="user_id" />
+            <result property="orderId" column="order_id" />
+            <result property="rating" column="rating" />
+            <result property="content" column="content" />
+            <result property="reply" column="reply" />
+            <result property="replyTime" column="reply_time" />
+            <result property="status" column="status" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,product_id,user_id,order_id,rating,content,
+        reply,reply_time,status,create_time,update_time
+    </sql>
+
+    <!--插入评价-->
+    <insert id="insertReview" parameterType="com.example.ecommerce.entity.Review" useGeneratedKeys="true" keyProperty="id">
+        insert into review (
+                            product_id,user_id,order_id,rating,content,
+                            reply,reply_time,status,create_time,update_time)
+        values (#{productId},#{userId},#{orderId},#{rating},#{content},#{reply},#{replyTime},1,now(),now())
+    </insert>
+
+    <!--更新评价回复-->
+    <update id="updateReply">
+        update review
+        set reply = #{reply},reply_time = now(),update_time = now()
+        where id = #{id}
+    </update>
+    <update id="updateStatus">
+        update review
+        set status = 0
+        where id = #{id}
+    </update>
+
+    <!--根据商品Id查询评价-->
+    <select id="selectByProductId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+            from review
+        where product_id = #{productId} and status = 1
+        order by create_time desc
+    </select>
+
+    <!--根据商户Id查询评价-->
+    <select id="selectByMerchantProducts" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+            from review
+        where product_id in (
+            select id from product
+            where merchant_id = #{merchantId}
+        )
+        order by create_time desc
+    </select>
+
+    <!--根据Id查询评价-->
+    <select id="selectById" resultType="com.example.ecommerce.entity.Review">
+        select
+        <include refid="Base_Column_List" />
+            from review
+        where id = #{id}
+    </select>
+
+
+    <select id="countByProductId" resultMap="BaseResultMap">
+        select count(*)
+        from review
+        where product_id = #{productId} and status = 1
+    </select>
+
+    <!--根据商品Id查询评价的平均分
+     ifnull(avg(rating),0)如果没有评价，avg返回null，用ifnull函数将其转换为0
+    -->
+    <select id="avgRatingByProductId" resultType="java.lang.Double">
+        select ifnull(avg(rating),0)
+        from review
+        where product_id = #{productId} and status = 1
+    </select>
+
+</mapper>

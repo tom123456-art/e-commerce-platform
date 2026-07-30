@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.ProductViewEventMapper">
+
+    <!--
+      insert：记录浏览行为
+      - view_date：浏览日期（用于按日聚合统计）
+      - viewed_at：用 now() 记录精确浏览时间
+    -->
+    <insert id="insert" parameterType="com.example.ecommerce.entity.ProductViewEvent" useGeneratedKeys="true" keyProperty="id">
+        insert into product_view_event (product_id, user_id, source, view_date, viewed_at)
+        values (#{productId}, #{userId}, #{source}, #{viewDate}, now())
+    </insert>
+
+</mapper>

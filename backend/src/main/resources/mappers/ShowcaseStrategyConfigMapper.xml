@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.ShowcaseStrategyConfigMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.ShowcaseStrategyConfig">
+        <id column="id" property="id" />
+        <result column="mode" property="mode" />
+        <result column="short_window_days" property="shortWindowDays" />
+        <result column="long_window_days" property="longWindowDays" />
+        <result column="cart_preference_weight" property="cartPreferenceWeight" />
+        <result column="hot_weights_json" property="hotWeightsJson" />
+        <result column="anonymous_weights_json" property="anonymousWeightsJson" />
+        <result column="personalized_weights_json" property="personalizedWeightsJson" />
+        <result column="hot_signal_weights_json" property="hotSignalWeightsJson" />
+        <result column="last_auto_tuned_at" property="lastAutoTunedAt" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <!-- selectCurrent：单行配置表，ORDER BY id ASC LIMIT 1 稳定返回唯一记录 -->
+    <select id="selectCurrent" resultMap="BaseResultMap">
+        select id,
+               mode,
+               short_window_days,
+               long_window_days,
+               cart_preference_weight,
+               hot_weights_json,
+               anonymous_weights_json,
+               personalized_weights_json,
+               hot_signal_weights_json,
+               last_auto_tuned_at,
+               create_time,
+               update_time
+        from showcase_strategy_config
+        order by id asc
+        limit 1
+    </select>
+
+    <!--
+      upsert：UPSERT 示例（ON DUPLICATE KEY UPDATE）
+      - id 不存在 -> INSERT 初始化配置
+      - id 已存在（主键冲突）-> UPDATE，VALUES(column) 引用 INSERT 中的值
+    -->
+    <insert id="upsert" parameterType="com.example.ecommerce.entity.ShowcaseStrategyConfig">
+        insert into showcase_strategy_config (
+            id, mode, short_window_days, long_window_days, cart_preference_weight,
+            hot_weights_json, anonymous_weights_json, personalized_weights_json,
+            hot_signal_weights_json, last_auto_tuned_at, create_time, update_time
+        ) values (
+            #{id}, #{mode}, #{shortWindowDays}, #{longWindowDays}, #{cartPreferenceWeight},
+            #{hotWeightsJson}, #{anonymousWeightsJson}, #{personalizedWeightsJson},
+            #{hotSignalWeightsJson}, #{lastAutoTunedAt}, now(), now()
+        )
+        on duplicate key update
+            mode = values(mode),
+            short_window_days = values(short_window_days),
+            long_window_days = values(long_window_days),
+            cart_preference_weight = values(cart_preference_weight),
+            hot_weights_json = values(hot_weights_json),
+            anonymous_weights_json = values(anonymous_weights_json),
+            personalized_weights_json = values(personalized_weights_json),
+            hot_signal_weights_json = values(hot_signal_weights_json),
+            last_auto_tuned_at = values(last_auto_tuned_at),
+            update_time = now()
+    </insert>
+
+</mapper>

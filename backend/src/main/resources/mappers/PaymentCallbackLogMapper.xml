@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.PaymentCallbackLogMapper">
+
+    <!--
+      insert：记录支付回调的完整信息
+      - raw_payload：原始回调数据（JSON），用于问题排查
+      - verified/processed/success：验证与处理结果标记
+    -->
+    <insert id="insert" parameterType="com.example.ecommerce.entity.PaymentCallbackLog" useGeneratedKeys="true" keyProperty="id">
+        insert into payment_callback_log
+        (order_no, trade_no, trade_status, raw_payload, verified, processed, success, error_message, create_time, update_time)
+        values
+        (#{orderNo}, #{tradeNo}, #{tradeStatus}, #{rawPayload}, #{verified}, #{processed}, #{success}, #{errorMessage}, now(), now())
+    </insert>
+
+    <!-- updateResult：按主键 id 更新验证与处理结果 -->
+    <update id="updateResult" parameterType="com.example.ecommerce.entity.PaymentCallbackLog">
+        update payment_callback_log
+        set verified = #{verified},
+            processed = #{processed},
+            success = #{success},
+            error_message = #{errorMessage},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.ecommerce.mapper.ProductMetricDailyMapper">
+
+    <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.ProductMetricDaily">
+            <id property="id" column="id" />
+            <result property="metricDate" column="metric_date" />
+            <result property="productId" column="product_id" />
+            <result property="viewCount" column="view_count" />
+            <result property="cartAddCount" column="cart_add_count" />
+            <result property="paidOrderCount" column="paid_order_count" />
+            <result property="paidQuantity" column="paid_quantity" />
+            <result property="paidAmount" column="paid_amount" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,metric_date,product_id,view_count,cart_add_count,paid_order_count,
+        paid_quantity,paid_amount,create_time,update_time
+    </sql>
+
+    <!--插入或更新商品每日指标-->
+    <!--
+    on duplicate key update解释:
+    如果插入的记录已经存在，则更新该记录
+    values(view_count)表示插入的值，values(view_count)表示更新后的值
+    -->
+
+    <insert id="upsertDelete" parameterType="com.example.ecommerce.entity.ProductMetricDaily">
+        insert into product_metric_daily (
+                            metric_date,product_id,view_count,cart_add_count,paid_order_count,
+                            paid_quantity,paid_amount,create_time,update_time)
+        values (#{metricDate},#{productId},#{viewCount},#{cartAddCount},#{paidOrderCount},
+                #{paidQuantity},#{paidAmount},now(),now())
+            on duplicate key update
+                view_count = view_count + values(view_count),
+                cart_add_count = cart_add_count + values(cart_add_count),
+                paid_order_count = paid_order_count + values(paid_order_count),
+                paid_quantity = paid_quantity + values(paid_quantity),
+                paid_amount = paid_amount + values(paid_amount),
+                update_time = now()
+    </insert>
+
+
+</mapper>

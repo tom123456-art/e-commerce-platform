@@ -1,107 +1,16 @@
-# Spring 框架全局顶层配置
 spring:
-  # 自动配置排除项，关闭不需要的OpenAI相关自动装配，减少多余Bean加载
-  autoconfigure:
-    exclude:
-      # 排除OpenAI语音转文字自动配置，项目无需语音生成功能
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
-      # 排除OpenAI音频转录自动配置，无语音识别业务需求
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration
-      # 排除OpenAI向量嵌入自动配置，本项目暂不使用向量检索/知识库
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
-      # 排除OpenAI图像生成自动配置，无AI绘图业务
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
-      # 排除OpenAI内容审核自动配置，不需要文本安全检测接口
-      - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
-
-  # Spring AI 大模型相关配置，对接OpenAI兼容大模型接口
-  ai:
-    model:
-      # 对话模型类型，读取环境变量，无变量默认使用openai类型
-      chat: ${SPRING_AI_CHAT_MODEL:openai}
-    openai:
-      # 大模型代理接口地址，环境变量优先，默认第三方AI中转地址
-      base-url: ${OPENAI_BASE_URL:https://apihub.agnes-ai.com}
-      chat:
-        options:
-          # 对话使用的大模型名称，无环境变量默认agnes-2.0-flash轻量模型
-          model: ${OPENAI_MODEL:agnes-2.0-flash}
-
-  # MySQL数据库连接配置
   datasource:
-    # MySQL连接地址，指定库名、编码、时区，关闭SSL本地开发用
-    url: jdbc:mysql://localhost:3306/ecommerce?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    # 数据库账号，优先读取环境变量，本地默认root
-    username: ${DB_USERNAME:root}
-    # 数据库密码，优先读取环境变量，本地默认123456
-    password: ${DB_PASSWORD:123456}
-    # MySQL8.x专属驱动类全限定名
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  # SpringBoot3标准Redis配置节点（替代废弃的spring.redis）
+    url: jdbc:mysql://localhost:3306/ecommerce_test?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${MYSQL_PASSWORD:root}
   data:
     redis:
-      # Redis服务本地地址
-      host: localhost
-      # Redis默认服务端口6379
-      port: 6379
-      # Redis密码，读取环境变量，无密码则为空
-      # password: ${REDIS_PASSWORD:#}
-      # 使用Redis第0号数据库
-      database: 0
+      database: 1
 
-  # RabbitMQ消息队列连接与生产确认配置
-  rabbitmq:
-    # RabbitMQ服务本地地址
-    host: localhost
-    # RabbitMQ默认端口5672
-    port: 5672
-    # MQ登录账号，环境变量优先，默认guest
-    username: ${RABBITMQ_USERNAME:guest}
-    # MQ登录密码，环境变量优先，默认guest
-    password: ${RABBITMQ_PASSWORD:guest}
-    # 虚拟主机，默认根路径/
-    virtual-host: /
-    # 生产者确认模式：correlated 关联消息唯一标识，区分每条消息确认回调
-    publisher-confirm-type: correlated
-    # 开启消息投递失败回调，消息无路由时触发return回调
-    publisher-returns: true
-    template:
-      # mandatory=true: 消息无法投递到队列时，触发return回调
-      mandatory: true
-
-  security:
-    user:
-      name: admin
-      password: 123456
-      roles: ADMIN
-
-# 日志打印级别配置
-logging:
-  level:
-    # 项目业务代码包日志级别为debug，打印完整业务调试日志
-    com.example.ecommerce: debug
-
-# 项目自定义业务配置前缀
 ecommerce:
-  # 登录认证、Token相关配置
-  auth:
-    # JWT签名加密密钥，环境变量优先，本地开发默认测试密钥
-    token-hmac-secret: ${TOKEN_HMAC_SECRET:dev-only-hmac-secret-key-at-least-32-chars-long}
-  # 业务层RabbitMQ开关配置
   rabbit:
-    # 消息队列总开关，true启用队列相关业务
-    enabled: true
-    # 是否开启消息消费者监听，开发环境可按需关闭
-    listener-enabled: true
-  # 支付业务配置
+    enabled: false          # 测试环境禁用 RabbitMQ，免依赖
   payment:
     alipay:
-      # 是否启用模拟支付，本地开发开启，跳过真实支付宝网关调用
+      enabled: false        # 测试环境禁用真实支付
       mock-enabled: true
-
-# 关闭 Rabbit 健康检测
-management:
-  health:
-    rabbit:
-      enabled: false

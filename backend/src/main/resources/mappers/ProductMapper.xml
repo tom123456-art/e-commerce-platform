@@ -1,39 +1,28 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!--
-  ProductMapper.xml —— 商品表映射文件，包含 MyBatis 动态 SQL 的完整示例。
-
-  动态 SQL 是 MyBatis 最强大的特性，根据不同参数生成不同 SQL：
-    1. <where>：自动添加 WHERE 关键字，自动去除多余的 AND/OR
-    2. <if test="...">：根据条件决定是否包含某段 SQL
-    3. <choose>/<when>/<otherwise>：多条件分支（类似 switch-case）
-    4. <![CDATA[]]>：转义 XML 特殊字符（>、<）
-    5. LIKE 模糊查询：使用 concat 函数拼接通配符
-    6. LIMIT 分页：物理分页实现
--->
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.ecommerce.mapper.ProductMapper">
-
-    <!-- resultMap：商品结果映射，注意 category_id→categoryId 的下划线→驼峰转换 -->
     <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.Product">
-        <id column="id" property="id" />
-        <result column="name" property="name" />
-        <result column="description" property="description" />
-        <result column="price" property="price" />
-        <result column="stock" property="stock" />
-        <result column="image" property="image" />
-        <result column="category_id" property="categoryId" />
-        <result column="merchant_id" property="merchantId" />
-        <result column="status" property="status" />
-        <result column="create_time" property="createTime" />
-        <result column="update_time" property="updateTime" />
+        <!-- column 数据库列名 property Java属性名 -->
+        <id column="id" property="id"/>
+        <!-- ctrl+d 复制光标行 ctrl+y 删除光标行 -->
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="price" property="price"/>
+        <result column="stock" property="stock"/>
+        <result column="image" property="image"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
     </resultMap>
-
-    <!-- SQL 片段：商品表所有列名 -->
+    <!-- SQL片段，可复用的列名 -->
     <sql id="Base_Column_List">
         id, name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time
     </sql>
 
-    <!-- selectById：根据 ID 查询商品 -->
     <select id="selectById" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
@@ -41,128 +30,23 @@
         where id = #{id}
     </select>
 
-    <!-- selectAll：查询所有商品 -->
     <select id="selectAll" resultMap="BaseResultMap">
         select
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         from product
     </select>
 
-    <!--
-    分页查询商品，使用动态SQL
-    limit
-    offset(page-1)*pageSize
-    -->
-    <select id="selectPage" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
-        from product
-        <where>
-            
-            <!-- 默认条件：只查询上架商品（status=1） -->
-            status = 1
-            <!-- test表达式决定是否包含内部SQL，当keyword不为空的时候，才包含模糊搜索 -->
-            <!-- 关键词模糊搜索：同时匹配商品名称和描述 -->
-            <if test="request.keyword != null and request.keyword != ''">
-                and (
-                name like concat('%', #{request.keyword}, '%')
-                or
-                description like concat('%', #{request.keyword}, '%')
-                )
-            </if>
-            <!-- 分类筛选 -->
-            <if test="request.categoryId != null">
-                and category_id = #{request.categoryId}
-            </if>
-            <!-- 最低价格筛选，<![CDATA[>=]]> 转义大于等于号 -->
-            <if test="request.minPrice != null">
-                and price <![CDATA[>=]]> #{request.minPrice}
-            </if>
-            <!-- 最高价格筛选 -->
-            <if test="request.maxPrice != null">
-                and price <![CDATA[<=]]> #{request.maxPrice}
-            </if>
-        </where>
-        <!--
-          <choose> 排序逻辑：白名单防注入
-          每个排序都附加 ", id desc" 作为二级排序，确保分页结果稳定
-        -->
-        <choose>
-            <when test="request.sortBy == 'price'">
-                <choose>
-                    <when test="request.sortDirection == 'asc'">order by price asc</when>
-                    <otherwise>order by price desc</otherwise>
-                </choose>
-                , id desc
-            </when>
-            <when test="request.sortBy == 'stock'">
-                <choose>
-                    <when test="request.sortDirection == 'asc'">order by stock asc</when>
-                    <otherwise>order by stock desc</otherwise>
-                </choose>
-                , id desc
-            </when>
-            <when test="request.sortBy == 'name'">
-                <choose>
-                    <when test="request.sortDirection == 'asc'">order by name asc</when>
-                    <otherwise>
-                        order by name desc
-                    </otherwise>
-                </choose>
-                , id desc
-            </when>
-            <!-- 默认排序：按更新时间倒序 -->
-            <otherwise>
-                order by update_time desc, id desc
-            </otherwise>
-        </choose>
-        <!-- LIMIT 分页：offset, pageSize -->
-        limit #{request.offset}, #{request.normalizedPageSize}
-    </select>
+    <delete id="delete" parameterType="java.lang.Long">
+        delete from product
+        where id=#{id}
+    </delete>
 
-    <!--
-      countPage：统计符合条件的商品总数
-      使用与 selectPage 相同的筛选条件，但只返回 count(1)
-    -->
-    <select id="countPage" resultType="long">
-        select count(1)
-        from product
-        <where>
-            status = 1
-            <if test="request.keyword != null and request.keyword != ''">
-                and (
-                name like concat('%', #{request.keyword}, '%')
-                or description like concat('%', #{request.keyword}, '%')
-                )
-            </if>
-            <if test="request.categoryId != null">
-                and category_id = #{request.categoryId}
-            </if>
-            <if test="request.minPrice != null">
-                and price <![CDATA[>=]]> #{request.minPrice}
-            </if>
-            <if test="request.maxPrice != null">
-                and price <![CDATA[<=]]> #{request.maxPrice}
-            </if>
-        </where>
-    </select>
-
-    <!-- selectByCategoryId：根据分类查询商品 -->
-    <select id="selectByCategoryId" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
-        from product
-        where category_id = #{categoryId}
-    </select>
-
-    <!-- insert：插入新商品，useGeneratedKeys 回填自增主键 -->
     <insert id="insert" parameterType="com.example.ecommerce.entity.Product"
             useGeneratedKeys="true" keyProperty="id">
-        insert into product (name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time)
+        insert into product(name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time)
         values (#{name}, #{description}, #{price}, #{stock}, #{image}, #{categoryId}, #{merchantId}, #{status}, now(), now())
     </insert>
 
-    <!-- update：全字段更新商品 -->
     <update id="update" parameterType="com.example.ecommerce.entity.Product">
         update product
         set name = #{name},
@@ -177,33 +61,133 @@
         where id = #{id}
     </update>
 
+
+    <select id="selectByCategoryId" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"></include>
+        from product
+        where category_id = #{categoryId}
+    </select>
+
     <!--
-      decreaseStock：扣减库存（防超卖核心 SQL）
-      ============================================
-
-      WHERE stock >= #{quantity} 是防超卖的关键：
-        - 如果库存充足（stock >= quantity），扣减成功，返回 1
-        - 如果库存不足（stock < quantity），WHERE 条件不满足，
-          UPDATE 影响 0 行，返回 0，业务层据此判断失败
-
-      status = 1 条件确保只能扣减上架商品的库存。
-
-      这种"在 UPDATE 条件中判断库存"的方式比"先 SELECT 再 UPDATE"更安全，
-      因为它利用了数据库的行级锁，天然防止并发超卖。
+    分页查询商品，使用动态SQL
+    limit
+    offset (page-1)*pageSize
     -->
+    <select id="selectPage" resultMap="BaseResultMap">
+        select
+            <include refid="Base_Column_List"/>
+        from product
+        /* 只查询上架的商品 */
+        <where>
+            /* 自动添加WHERE关键字，只有在内部有条件的时候才会添加 */
+            /* 只查询上架的商品 */
+            status = 1
+            /* 关键词的模糊搜索 ：同时匹配商品名称和描述信息 */
+            /* test的表达式决定是否包含内部SQL，当keyword不为空的时候，才包含模糊搜索 */
+            <if test="request.keyword != null and request.keyword != ''">
+                and (
+                name like concat('%', #{request.keyword}, '%')
+                or
+                description like concat('%', #{request.keyword}, '%')
+                )
+            </if>
+            /* 筛选 */
+            /* 分类筛选 */
+            <if test="request.categoryId != null">
+                and category_id = #{request.categoryId}
+            </if>
+            /* 价格筛选 */
+            <if test="request.minPrice != null">
+                and price <![CDATA[>=]]> #{request.minPrice}
+            </if>
+            <if test="request.maxPrice != null">
+                and price <![CDATA[<=]]> #{request.maxPrice}
+            </if>
+        </where>
+        /* 排序 */
+        <choose>
+            <when test="request.sortBy == 'price'">
+                /* 按照价格排序 */
+                <choose>
+                    <when test="request.sortDirection == 'asc'">
+                        order by price asc
+                    </when>
+                    <otherwise>
+                        order by price desc
+                    </otherwise>
+                </choose>
+                , id desc
+            </when>
+
+            <when test="request.sortBy == 'stock'">
+                /* 按照库存排序 */
+                <choose>
+                    <when test="request.sortDirection == 'asc'">
+                        order by stock asc
+                    </when>
+                    <otherwise>
+                        order by stock desc
+                    </otherwise>
+                </choose>
+                , id desc
+            </when>
+            <when test="request.sortBy == 'name'">
+                /* 按照商品名排序 */
+                <choose>
+                    <when test="request.sortDirection == 'asc'">
+                        order by name asc
+                    </when>
+                    <otherwise>
+                        order by name desc
+                    </otherwise>
+                </choose>
+                , id desc
+            </when>
+            <otherwise>
+                /* 按照更新时间排序 */
+                order by update_time desc, id desc
+            </otherwise>
+        </choose>
+        <!-- Limit分页 -->
+        limit #{request.offset}, #{request.normalizedPageSize}
+    </select>
+
+
+    <select id="countPage" resultType="long">
+        select count(1)
+        from product
+        <where>
+            status = 1
+            /* 关键词的模糊搜索 ：同时匹配商品名称和描述信息 */
+            /* test的表达式决定是否包含内部SQL，当keyword不为空的时候，才包含模糊搜索 */
+            <if test="request.keyword != null and request.keyword != ''">
+                and (
+                name like concat('%', #{request.keyword}, '%')
+                or
+                description like concat('%', #{request.keyword}, '%')
+                )
+            </if>
+            /* 筛选 */
+            /* 分类筛选 */
+            <if test="request.categoryId != null">
+                and category_id = #{request.categoryId}
+            </if>
+            /* 价格筛选 */
+            <if test="request.minPrice != null">
+                and price <![CDATA[>=]]> #{request.minPrice}
+            </if>
+            <if test="request.maxPrice != null">
+                and price <![CDATA[<=]]> #{request.maxPrice}
+            </if>
+        </where>
+    </select>
+
+
     <update id="decreaseStock">
         update product
-        set stock = stock - #{quantity},
-            update_time = now()
+        set stock = stock - #{quantity}, update_time = now()
         where id = #{id}
-          and status = 1
-          and stock >= #{quantity}
+        and status = 1 and stock >= #{quantity}
     </update>
-
-    <!-- delete：物理删除商品 -->
-    <delete id="delete" parameterType="java.lang.Long">
-        delete from product
-        where id = #{id}
-    </delete>
-
 </mapper>

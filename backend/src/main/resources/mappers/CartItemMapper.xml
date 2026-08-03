@@ -5,16 +5,16 @@
 <mapper namespace="com.example.ecommerce.mapper.CartItemMapper">
 
     <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.CartItem">
-        <id property="id" column="id" />
-        <result property="userId" column="user_id" />
-        <result property="productId" column="product_id" />
-        <result property="quantity" column="quantity" />
-        <result property="createTime" column="create_time" />
-        <result property="updateTime" column="update_time" />
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="productId" column="product_id" />
+            <result property="quantity" column="quantity" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
     </resultMap>
 
-    <!---->
-    <resultMap id="CartItemResponse" type="com.example.ecommerce.dto.CartItemResponse">
+    <!-- CartItemResponseMap 映射到CartItemResponseDTO，用来做联表查询 -->
+    <resultMap id="CartItemResponseMap" type="com.example.ecommerce.dto.CartItemResponse">
         <id property="id" column="id" />
         <result property="userId" column="user_id" />
         <result property="productId" column="product_id" />
@@ -24,14 +24,13 @@
         <result property="image" column="image" />
         <result property="stock" column="stock" />
         <result property="subtotal" column="subtotal" />
-
     </resultMap>
 
     <sql id="Base_Column_List">
         id,user_id,product_id,quantity,create_time,update_time
     </sql>
 
-    <!--where id=#{id} and user_id=#{userId}-->
+    <!-- where id=#{id} and user_id=#{userId} -->
     <update id="updateQuantity">
         update cart_item
         set quantity = #{quantity}, update_time = now()
@@ -42,74 +41,68 @@
         update cart_item
         set quantity = quantity + #{quantity}, update_time = now()
         where id = #{id}
-          and user_id = #{userId}
-          and quantity + #{quantity} >0
+        and user_id = #{userId}
+        and quantity + #{quantity} > 0
     </update>
 
     <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from cart_item
-        where  id = #{id}
+        where  id = #{id} 
     </select>
-
-    <select id="selectByUserIdAndProductId"  resultMap="BaseResultMap">
+    <select id="selectByUserAndProduct" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List" />
         from cart_item
-        where  user_id = #{userId} and product_id = #{productId}
+        where user_id = #{userId} and product_id = #{productId}
     </select>
 
-    <select id="selestCartByUserId" resultMap="CartItemResponse">
+    <select id="selectCartByUserId" resultMap="CartItemResponseMap">
         select
-            c.id,
-            c.user_id,
-            c.product_id,
-            c.quantity,
-            p.name as product_name,
-            p.price,
-            p.image,
-            p.stock,
+            c.id, c.user_id, c.product_id, c.quantity,
+            p.name as product_name, p.price,p.image,p.stock,
             p.price * c.quantity as subtotal
         from cart_item c inner join product p on c.product_id = p.id
-        where  c.user_id = #{userId}
+        where c.user_id = #{userId}
         order by c.update_time desc
     </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
         delete from cart_item
-        where  id = #{id}
+        where  id = #{id} 
     </delete>
+
     <delete id="deleteByIdAndUserId">
         delete from cart_item
-        where  id = #{id} and user_id = #{userId}
+        where id = #{id} and user_id = #{userId}
     </delete>
     <delete id="deleteByUserId">
         delete from cart_item
-        where  user_id = #{userId}
+        where user_id = #{userId}
     </delete>
+
+
     <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.example.ecommerce.entity.CartItem" useGeneratedKeys="true">
         insert into cart_item
-            ( user_id,product_id,quantity,create_time,update_time)
+        (user_id,product_id,quantity,create_time,update_time)
         values (#{userId},#{productId},#{quantity},now(),now())
     </insert>
     <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.example.ecommerce.entity.CartItem" useGeneratedKeys="true">
         insert into cart_item
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="id != null">id,</if>
-            <if test="userId != null">user_id,</if>
-            <if test="productId != null">product_id,</if>
-            <if test="quantity != null">quantity,</if>
-            <if test="createTime != null">create_time,</if>
-            <if test="updateTime != null">update_time,</if>
+                <if test="userId != null">user_id,</if>
+                <if test="productId != null">product_id,</if>
+                <if test="quantity != null">quantity,</if>
+                <if test="createTime != null">create_time,</if>
+                <if test="updateTime != null">update_time,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="id != null">#{id},</if>
-            <if test="userId != null">#{userId},</if>
-            <if test="productId != null">#{productId},</if>
-            <if test="quantity != null">#{quantity},</if>
-            <if test="createTime != null">#{createTime},</if>
-            <if test="updateTime != null">#{updateTime},</if>
+                <if test="userId != null">#{userId},</if>
+                <if test="productId != null">#{productId},</if>
+                <if test="quantity != null">#{quantity},</if>
+                <if test="createTime != null">#{createTime},</if>
+                <if test="updateTime != null">#{updateTime},</if>
         </trim>
     </insert>
 

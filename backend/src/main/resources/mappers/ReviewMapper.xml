@@ -23,69 +23,65 @@
         reply,reply_time,status,create_time,update_time
     </sql>
 
-    <!--插入评价-->
-    <insert id="insertReview" parameterType="com.example.ecommerce.entity.Review" useGeneratedKeys="true" keyProperty="id">
-        insert into review (
-                            product_id,user_id,order_id,rating,content,
-                            reply,reply_time,status,create_time,update_time)
-        values (#{productId},#{userId},#{orderId},#{rating},#{content},#{reply},#{replyTime},1,now(),now())
+    <!-- 插入评价 -->
+    <insert id="insertReview" parameterType="com.example.ecommerce.entity.Review"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into review (product_id, user_id, order_id, rating, content,
+                            reply, reply_time, status, create_time, update_time)
+        values (#{productId}, #{userId}, #{orderId}, #{rating}, #{content},
+                #{reply}, #{replyTime}, 1, now(), now())
     </insert>
 
-    <!--更新评价回复-->
+    <!-- 更新评价回复 -->
     <update id="updateReply">
         update review
-        set reply = #{reply},reply_time = now(),update_time = now()
-        where id = #{id}
-    </update>
-    <update id="updateStatus">
-        update review
-        set status = 0
+        set reply = #{reply}, reply_time = now(), update_time = now()
         where id = #{id}
     </update>
 
-    <!--根据商品Id查询评价-->
+    <!-- 更新评价状态 -->
+    <update id="updateStatus">
+        update review
+        set status = #{status}, update_time = now()
+    </update>
+
+    <!-- 查询商品的所有评价，status=1是已通过的评价 -->
     <select id="selectByProductId" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
+        select <include refid="Base_Column_List"/>
             from review
         where product_id = #{productId} and status = 1
         order by create_time desc
     </select>
-
-    <!--根据商户Id查询评价-->
+    <!-- 查询商家所有商品的评价 -->
     <select id="selectByMerchantProducts" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
+        select <include refid="Base_Column_List"></include>
             from review
         where product_id in (
-            select id from product
-            where merchant_id = #{merchantId}
+            select id from product where merchant_id = #{merchantId}
         )
         order by create_time desc
     </select>
 
-    <!--根据Id查询评价-->
-    <select id="selectById" resultType="com.example.ecommerce.entity.Review">
-        select
-        <include refid="Base_Column_List" />
+    <!-- 根据id查询评价 -->
+    <select id="selectById" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
             from review
         where id = #{id}
     </select>
 
-
-    <select id="countByProductId" resultMap="BaseResultMap">
-        select count(*)
-        from review
-        where product_id = #{productId} and status = 1
+    <!-- 根据商品id查询评价数量 -->
+    <select id="countByProductId" resultType="int">
+        select count(*) from review where product_id = #{productId} and status = 1
     </select>
-
-    <!--根据商品Id查询评价的平均分
+    <!--
+    根据商品id查询评价平均分
      ifnull(avg(rating),0)如果没有评价，avg返回null，用ifnull函数将其转换为0
-    -->
+     -->
     <select id="avgRatingByProductId" resultType="java.lang.Double">
-        select ifnull(avg(rating),0)
+        select ifnull(avg(rating), 0)
         from review
         where product_id = #{productId} and status = 1
     </select>
+
 
 </mapper>

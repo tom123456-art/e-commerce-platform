@@ -32,7 +32,7 @@ class ProductViewEventMapperTest {
         testEvent.setProductId(1L);
         testEvent.setUserId(1L);
         testEvent.setSource("web");
-        testEvent.setViewDate(new java.sql.Date(new java.util.Date().getTime()));
+        testEvent.setViewDate(LocalDate.now());
     }
 
     @org.junit.jupiter.api.Test

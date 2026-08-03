@@ -1,48 +1,63 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.ecommerce.mapper.ProductMetricDailyMapper">
 
-    <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.ProductMetricDaily">
-            <id property="id" column="id" />
-            <result property="metricDate" column="metric_date" />
-            <result property="productId" column="product_id" />
-            <result property="viewCount" column="view_count" />
-            <result property="cartAddCount" column="cart_add_count" />
-            <result property="paidOrderCount" column="paid_order_count" />
-            <result property="paidQuantity" column="paid_quantity" />
-            <result property="paidAmount" column="paid_amount" />
-            <result property="createTime" column="create_time" />
-            <result property="updateTime" column="update_time" />
-    </resultMap>
-
-    <sql id="Base_Column_List">
-        id,metric_date,product_id,view_count,cart_add_count,paid_order_count,
-        paid_quantity,paid_amount,create_time,update_time
-    </sql>
-
-    <!--插入或更新商品每日指标-->
     <!--
-    on duplicate key update解释:
-    如果插入的记录已经存在，则更新该记录
-    values(view_count)表示插入的值，values(view_count)表示更新后的值
+      upsertDelta：UPSERT 示例（ON DUPLICATE KEY UPDATE）
+      - 尝试 INSERT（metric_date+product_id 为唯一键）
+      - 唯一键冲突时不报错，执行 UPDATE：view_count = view_count + VALUES(view_count)
+      - VALUES(view_count) 引用 INSERT 语句中 view_count 的值，实现累加
     -->
-
-    <insert id="upsertDelete" parameterType="com.example.ecommerce.entity.ProductMetricDaily">
+    <insert id="upsertDelta" parameterType="com.example.ecommerce.entity.ProductMetricDaily">
         insert into product_metric_daily (
-                            metric_date,product_id,view_count,cart_add_count,paid_order_count,
-                            paid_quantity,paid_amount,create_time,update_time)
-        values (#{metricDate},#{productId},#{viewCount},#{cartAddCount},#{paidOrderCount},
-                #{paidQuantity},#{paidAmount},now(),now())
-            on duplicate key update
-                view_count = view_count + values(view_count),
-                cart_add_count = cart_add_count + values(cart_add_count),
-                paid_order_count = paid_order_count + values(paid_order_count),
-                paid_quantity = paid_quantity + values(paid_quantity),
-                paid_amount = paid_amount + values(paid_amount),
-                update_time = now()
+            metric_date, product_id, view_count, cart_add_count,
+            paid_order_count, paid_quantity, paid_amount, create_time, update_time
+        ) values (
+            #{metricDate}, #{productId}, #{viewCount}, #{cartAddCount},
+            #{paidOrderCount}, #{paidQuantity}, #{paidAmount}, now(), now()
+        )
+        on duplicate key update
+            view_count = view_count + values(view_count),
+            cart_add_count = cart_add_count + values(cart_add_count),
+            paid_order_count = paid_order_count + values(paid_order_count),
+            paid_quantity = paid_quantity + values(paid_quantity),
+            paid_amount = paid_amount + values(paid_amount),
+            update_time = now()
     </insert>
 
+    <!--
+      aggregateSummary：聚合汇总（SUM + IFNULL）  ⚠️ 课后阅读
+      - IFNULL(sum(...), 0)：无记录时 SUM 返回 NULL，转 0 避免 NPE
+      - <![CDATA[>=]]>：转义 >= 中的 >（XML 特殊字符）
+      - resultType 直接映射 DTO：列别名 as viewCount 与 DTO 属性名一致，自动映射
+    -->
+    <select id="aggregateSummary" resultType="com.example.ecommerce.dto.ShowcaseMetricSummary">
+        select
+            ifnull(sum(view_count), 0) as viewCount,
+            ifnull(sum(cart_add_count), 0) as cartAddCount,
+            ifnull(sum(paid_order_count), 0) as paidOrderCount,
+            ifnull(sum(paid_quantity), 0) as paidQuantity,
+            ifnull(sum(paid_amount), 0) as paidAmount
+        from product_metric_daily
+        where metric_date <![CDATA[>=]]> #{dateFrom}
+    </select>
+
+    <!--
+      selectRecentDailyTotals：按日分组聚合（GROUP BY + ORDER BY + LIMIT）
+      GROUP BY metric_date 按日期分组，对每组 SUM 聚合，倒序取前 N 天
+    -->
+    <select id="selectRecentDailyTotals" resultType="com.example.ecommerce.dto.ShowcaseDailyMetricItem">
+        select
+            metric_date as metricDate,
+            ifnull(sum(view_count), 0) as viewCount,
+            ifnull(sum(cart_add_count), 0) as cartAddCount,
+            ifnull(sum(paid_order_count), 0) as paidOrderCount,
+            ifnull(sum(paid_quantity), 0) as paidQuantity,
+            ifnull(sum(paid_amount), 0) as paidAmount
+        from product_metric_daily
+        group by metric_date
+        order by metric_date desc
+        limit #{limit}
+    </select>
 
 </mapper>

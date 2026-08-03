@@ -30,7 +30,7 @@ import com.example.ecommerce.entity.Product;
  * </ul>
  * <p>使用 DTO 组合模式，Entity 保持纯净，推荐元数据只在需要时出现。</p>
  *
- * @see com.example.ecommerce.entity.Product 商品实体
+ * @see Product 商品实体
  * @see ShowcaseStrategyResponse 展陈策略配置响应
  */
 public class ProductShowcaseResponse {

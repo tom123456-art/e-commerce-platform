@@ -14,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -58,7 +59,6 @@ public class GlobalExceptionHandler {
                 .body(Result.failure(Result.BAD_REQUEST_CODE, extractMessage(ex)));
     }
 
-
     /**
      * 处理认证异常（未登录）。
      * Spring Security 在用户未携带 Token 或 Token 过期时抛出。
@@ -90,7 +90,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 兜底异常处理器 — 捕获所有未被上述处理器捕获的异常。
+     * 处理静态资源找不到异常。
+     * 第0章没有 Controller，访问根路径会触发此异常，返回 404 而非 500。
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.failure(Result.NOT_FOUND_CODE, "Resource not found"));
+    }
+
+    /**
+     * 兜底异常处理器 - 捕获所有未被上述处理器捕获的异常。
      * 安全原则：永远不要把 Java 堆栈信息返回给前端！
      */
     @ExceptionHandler(Exception.class)

@@ -101,4 +101,14 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
+
+    /**
+     * @param userId
+     * @param encodedPassword
+     */
+    @Override
+
+    public void updatePassword(Long userId, String encodedPassword) {
+        userMapper.updatePassword(userId, encodedPassword);
+    }
 }

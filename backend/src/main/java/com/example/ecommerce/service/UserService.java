@@ -20,4 +20,9 @@ public interface UserService {
 
     /** 更新用户信息 */
     boolean updateUser(User user);
+
+    // UserService.java 接口
+
+    /* 更新用户密码（接收已加密的密码）*/
+    void updatePassword(Long userId, String encodedPassword);
 }

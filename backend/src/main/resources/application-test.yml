@@ -2,15 +2,23 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ecommerce_test?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: ${MYSQL_PASSWORD:root}
+    password: ${MYSQL_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
+      host: localhost
+      port: 6379
       database: 1
 
 ecommerce:
+  auth:
+    token-hmac-secret: test-only-hmac-secret-key-at-least-32-chars-long
   rabbit:
-    enabled: false          # 测试环境禁用 RabbitMQ，免依赖
+    enabled: false
   payment:
     alipay:
-      enabled: false        # 测试环境禁用真实支付
       mock-enabled: true
+
+logging:
+  level:
+    com.example.ecommerce: debug

@@ -1,24 +1,35 @@
+# Spring 框架全局顶层配置
 spring:
+  # MySQL数据库连接配置
   datasource:
+    # MySQL连接地址，指定库名、编码、时区，关闭SSL本地开发用
     url: jdbc:mysql://localhost:3306/ecommerce_test?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: ${MYSQL_PASSWORD:123456}
+    # 数据库账号，优先读取环境变量，本地默认root
+    username: ${DB_USERNAME:root}
+    # 数据库密码，优先读取环境变量，根据自己的密码来写
+    password: ${DB_PASSWORD:123456}
+    # MySQL8.x专属驱动类全限定名
     driver-class-name: com.mysql.cj.jdbc.Driver
+  # SpringBoot3标准Redis配置节点
   data:
     redis:
       host: localhost
       port: 6379
-      database: 1
+      database: 1  # 测试用 1 号库，与开发库 0 隔离
 
+# 项目自定义业务配置前缀
 ecommerce:
   auth:
+    # JWT签名加密密钥，测试环境使用固定测试密钥
     token-hmac-secret: test-only-hmac-secret-key-at-least-32-chars-long
   rabbit:
-    enabled: false
+    enabled: false  # 测试环境禁用 RabbitMQ
   payment:
     alipay:
       mock-enabled: true
 
+# 日志打印级别配置
 logging:
   level:
+    # 项目业务代码包日志级别为debug，打印完整业务调试日志
     com.example.ecommerce: debug

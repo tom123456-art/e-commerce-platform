@@ -1,12 +1,19 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.common.BusinessException;
+import com.example.ecommerce.common.Result;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.mapper.UserMapper;
 import com.example.ecommerce.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.parameters.P;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 用户服务实现类。
@@ -25,11 +32,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    // 手机号正则
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    // 用户名正则：4-20位字母数字下划线
+    private static final Pattern USERNAME_PATTERN
+            = Pattern.compile("^[a-zA-Z0-9_]{4,20}$");
 
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserMapper userMapper) {
+    private final PasswordEncoder passwordEncoder;
+    public UserServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -46,6 +60,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = userMapper.selectById(userId);
         if (user != null) {
+            user.setPassword(null);
             log.debug("User found by id: {}", userId);
         } else {
             log.debug("User not found by id: {}", userId);
@@ -85,30 +100,107 @@ public class UserServiceImpl implements UserService {
      *       以后如果需要同时更新其他表（如用户统计表），可以保证一致性
      */
     @Override
-    @Transactional
-    public boolean updateUser(User user) {
-        if (user == null || user.getId() == null) {
-            log.warn("Update user failed: user or user.id is null");
-            return false;
-        }
-
-        int rows = userMapper.update(user);
-        if (rows > 0) {
-            log.info("User updated successfully: {}", user.getId());
-            return true;
+    public void updateUser(User user) {
+        if (user == null || user.getId() == null)
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "用户或用户ID为空");
+        //  查询已有记录
+        User existing = userMapper.selectById(user.getId());
+        if (existing == null)
+            throw new BusinessException(Result.NOT_FOUND_CODE, "用户不存在");
+        // 合并，如果前端没有传值，则使用已有记录的值
+        mergeMissingFields(user, existing);
+        validateUserFields(user,false);
+        // 密码处理
+        if (user.getPassword() == null || user.getPassword().isEmpty()){
+            user.setPassword(existing.getPassword());
         } else {
-            log.warn("Update user failed: user not found, id={}", user.getId());
-            return false;
+            user.setPassword(encodeIfNecessary(user.getPassword()));
         }
+        userMapper.update(user);
+    }
+
+    private void mergeMissingFields(User user, User existing) {
+        if (user.getUsername() == null || user.getUsername().isEmpty())
+            user.setUsername(existing.getUsername());
+        if (user.getNickname() == null || user.getNickname().isEmpty())
+            user.setNickname(existing.getNickname());
+        if (user.getEmail() == null || user.getEmail().isEmpty())
+            user.setEmail(existing.getEmail());
+        if (user.getPhone() == null || user.getPhone().isEmpty())
+            user.setPhone(existing.getPhone());
+        if (user.getRole() == null)
+            user.setRole(existing.getRole());
+        if (user.getStatus() == null)
+            user.setStatus(existing.getStatus());
+    }
+
+    @Override
+    public void updatePassword(Long userId, String encodedPassword) {
+        userMapper.updatePassword(userId, encodedPassword);
     }
 
     /**
-     * @param userId
-     * @param encodedPassword
+     * @param user
      */
     @Override
+    public void save(User user) {
+        if (user == null || user.getUsername() == null || user.getPassword() == null)
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "用户名或密码不能为空");
+        // 字段格式校验
+        validateUserFields(user, true);
+        // 设置默认值
+        if (user.getStatus() == null) user.setStatus(1);
+        if (user.getRole() == null) user.setRole("user");
+        // 对密码进行编码加密
+        user.setPassword(encodeIfNecessary(user.getPassword()));
+        // 插入用户记录
+        userMapper.insert(user);
+    }
 
-    public void updatePassword(Long userId, String encodedPassword) {
-        userMapper.updatePassword(userId, encodedPassword);
+    /**
+     * 验证用户字段是否符合要求
+     * @param user
+     * @param b
+     */
+    private void validateUserFields(User user, boolean b) {
+        String username = user.getUsername() == null ? "" : user.getUsername().trim();
+        if (!USERNAME_PATTERN.matcher(username).matches())
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "用户名格式不正确");
+        if (user.getPhone() != null && !user.getPhone().isEmpty() &&
+                !PHONE_PATTERN.matcher(user.getPhone()).matches())
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "手机号格式不正确");
+    }
+
+    /**
+     * @param id
+     */
+    @Override
+    public void delete(Long id) {
+        userMapper.delete(id);
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public List<User> getAll() {
+        List<User> users = userMapper.selectAll();
+        users.forEach(user -> {if (user != null) user.setPassword(null);});
+        return users;
+    }
+
+    /**
+     * 对密码进行编码
+     *
+     * @param password
+     */
+    @Override
+    public String encodeIfNecessary(String password) {
+        if (password == null || password.isEmpty()) return password;
+        if (password.startsWith("$2a$") ||
+                password.startsWith("$2b$") ||
+                password.startsWith("$2y$"))
+            return password;
+        return passwordEncoder.encode(password);
     }
 }

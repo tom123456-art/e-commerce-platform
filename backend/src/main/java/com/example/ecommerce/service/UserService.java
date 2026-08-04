@@ -2,6 +2,8 @@ package com.example.ecommerce.service;
 
 import com.example.ecommerce.entity.User;
 
+import java.util.List;
+
 /**
  * 用户服务接口。
  *
@@ -19,10 +21,14 @@ public interface UserService {
     User getUserByUsername(String username);
 
     /** 更新用户信息 */
-    boolean updateUser(User user);
+    void updateUser(User user);
 
-    // UserService.java 接口
-
-    /* 更新用户密码（接收已加密的密码）*/
+    /** 更新用户密码（接收已加密的密码） */
     void updatePassword(Long userId, String encodedPassword);
+
+    void save(User user);
+    void delete(Long id);
+    List<User> getAll();
+    /** 对密码进行编码 */
+    String encodeIfNecessary(String password);
 }

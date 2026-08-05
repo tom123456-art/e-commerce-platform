@@ -1,27 +1,58 @@
 <template>
-  <div class="home">
-    <h1>欢迎来到电商平台</h1>
-    <p>这是一个SpringBoot+Vue3前后端分离的项目</p>
-    <div class="features">
-      <div class="feature-card">
-        <h3>🛍️商品预览</h3>
-        <p>浏览热卖商品和个性化推荐</p>
-      </div>
-      <div class="feature-card">
-        <h3>🛒购物车</h3>
-        <p>加入购物车，一键结算</p>
-      </div>
-      <div class="feature-card">
-        <h3>📦订单管理</h3>
-        <p>查看订单状态，确认收货</p>
-      </div>
-      <div class="feature-card">
-        <h3>🤖AI助手</h3>
-        <p>智能问答、搜索、推荐</p>
-      </div>
+    <div class="home">
+        <!-- 显示所有商品 -->
+        <section class="section">
+          <h2>全部商品</h2>
+          <p class="section-desc">精选好物，品质保证</p>
+          <div v-if="loading" class="loading">
+              加载中...
+          </div>
+          <div v-else class="product-grid">
+              <div v-for="product in products" :key="product.id" 
+              class="product-card" @click="goToProduct(product.id)">
+                <img :src="resolveImage(product)" :alt="product.name"
+                class="product-img" />
+                <div class="product-info">
+                    <h3>{{ product.name }}</h3>
+                    <p class="product-price">
+                      ￥ {{ formatPrice(product.price) }}
+                    </p>
+                </div>
+              </div>
+          </div>
+        </section>
     </div>
-  </div>
 </template>
+
+<script setup>
+import {ref, onMounted} from 'vue'
+import {useRouter} from 'vue-router'
+
+import {formatPrice} from '../utils/formatters'
+import {resolveProductImage } from '../utils/productCatalog'
+import http from '../utils/http';
+
+
+const router = useRouter()
+const loading = ref(true)
+const products = ref([])
+
+const resolveImage = (product) => resolveProductImage(product)
+
+const goToProduct = (id) => router.push(`/products/${id}`)
+
+
+onMounted(async () => {
+  try {
+    const res = await http.get('/products')
+    products.value = res.data || []
+  } catch (e) {
+    console.error("加载商品失败", e)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
 
 <style scoped>
 .home {

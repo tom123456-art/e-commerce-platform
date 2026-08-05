@@ -15,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -24,6 +27,21 @@ public class ProductServiceImpl implements ProductService {
 
     /* 商品缓存TTL秒 1小时 */
     private static final long PRODUCT_CACHE_TTL_SECONDS = 60 * 60L;
+
+    // 分类标签映射，帮我显示中文分类名
+    private static final Map<Integer,String> CATEGORY_LABELS = createCategoryLabels();
+
+    private static Map<Integer, String> createCategoryLabels() {
+        Map<Integer,String> labels = new HashMap<>();
+        labels.put(1,"手机数码");
+        labels.put(2,"电脑办公");
+        labels.put(3,"智能家电");
+        labels.put(4,"家居生活");
+        labels.put(5,"运动户外");
+        labels.put(6,"影音娱乐");
+        return labels;
+    }
+
 
     private final ProductMapper productMapper;
     private final RedisUtil redisUtil;
@@ -203,9 +221,90 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public void update(Product product) {
-        productMapper.update(product);
+        // 先查询是否存在，然后再更新
+        Long productId = product == null ? null : product.getId();
+        // 查询缓存，如果缓存中存在，则说明商品存在，否则可能不存在
+        Product previous =
+                productId == null ? null : productMapper.selectById(productId);
+        // 商品字段的校验和规范化处理
+        Product normalizedProduct = normalizeProduct(product, true);
+        productMapper.update(normalizedProduct);
         evictProductCaches();
 
+    }
+
+    /**
+     * 商品字段的规范化处理
+     * @param product
+     * @param requiredId 是否要求商品ID必须存在
+     * @return
+     */
+    private Product normalizeProduct(Product product, boolean requiredId) {
+        if (product == null)
+            throw new IllegalArgumentException("商品信息不能为空");
+        if (requiredId && product.getId() == null)
+            throw new IllegalArgumentException("商品ID不能为空");
+        Product normalizedProduct = new Product();
+        normalizedProduct.setId(product.getId());
+        normalizedProduct.setName(
+                requireText(product.getName(), "商品名称不能为空"));
+        normalizedProduct.setDescription(optionalText(product.getDescription()));
+        normalizedProduct.setPrice(normalizedPrice(product.getPrice()));
+        normalizedProduct.setStock(normalizeStock(product.getStock()));
+        normalizedProduct.setImage(optionalText(product.getImage()));
+        normalizedProduct.setCategoryId(normalizeCategoryId(product.getCategoryId()));
+        normalizedProduct.setStatus(normalizeStatus(product.getStatus()));
+        return normalizedProduct;
+    }
+
+
+    /** 库存规范化：非空、非负 */
+    private Integer normalizeStock(Integer stock) {
+        if (stock == null) {
+            throw new IllegalArgumentException("商品库存不能为空");
+        }
+        if (stock < 0) {
+            throw new IllegalArgumentException("商品库存不能小于 0");
+        }
+        return stock;
+    }
+
+    /** 分类合法性校验：必须在预定义的 6 个分类内 */
+    private Integer normalizeCategoryId(Integer categoryId) {
+        if (categoryId == null || !CATEGORY_LABELS.containsKey(categoryId)) {
+            throw new IllegalArgumentException("商品分类无效");
+        }
+        return categoryId;
+    }
+
+    /** 状态规范化：null 时默认 1（上架），只允许 0/1 */
+    private Integer normalizeStatus(Integer status) {
+        int normalized = status == null ? 1 : status;
+        if (normalized != 0 && normalized != 1) {
+            throw new IllegalArgumentException("商品状态无效");
+        }
+        return normalized;
+    }
+
+    private BigDecimal normalizedPrice(BigDecimal price) {
+        if (price == null)
+            throw new IllegalArgumentException("商品价格不能为空");
+        if (price.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("商品价格不能为负");
+        return price.setScale(2, BigDecimal.ROUND_HALF_UP);
+    }
+
+    private String requireText(String name, String message) {
+        String normalized = optionalText(name);
+        if (normalized == null || normalized.isEmpty())
+            throw new IllegalArgumentException(message);
+        return normalized;
+    }
+
+    private String optionalText(String name) {
+        if (name == null) return null;
+        String normalized = name.trim();
+        return normalized.isEmpty() ? null : normalized;
     }
 
     /**

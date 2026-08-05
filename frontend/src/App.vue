@@ -1,66 +1,106 @@
 <template>
-  <div id="app">
-    <!--导航栏-->
+  <div id="app" class="app-shell">
+    <!-- 品牌 Logo + 导航菜单（略） -->
     <nav class="navbar">
       <div class="nav-container">
-        <router-link to="/" class="nav-logo">🛒电商平台</router-link>
-        <div class="nav-links">
-          <router-link to="/">首页</router-link>
-          <router-link to="/product">商品</router-link>
-          <!--登录以后显示：购物车、订单、用户名、退出-->
-          <template v-if="isLoggedIn">
-            <router-link to="/cart">购物车</router-link>
-            <router-link to="/order">订单</router-link>
-            <span class="nav-user">{{ username }}</span>
-            <button class="nav-btn" @click="logout">退出</button>
-          </template>
-
-          <!--未登录显示：登录、注册-->
-          <template v-else>
-            <router-link to="/login">登录</router-link>
-            <router-link to="/register">注册</router-link>
-          </template>
-        </div>
+          <router-link to="/" class="nav-logo">电商平台</router-link> 
+          <div class="nav-links">
+            <router-link to="/" class="nav-link">首页</router-link>
+            <router-link to="/products" class="nav-link">
+              商品
+            </router-link>
+            <template v-if="loggedIn">
+              <router-link to="/cart" class="nav-link">
+                购物车
+              </router-link>
+              <router-link to="/orders" class="nav-link">
+                我的订单
+              </router-link>
+              <span class="nav-user">欢迎，{{ username }}</span>
+              <button class="nav-btn" @click="logout">退出</button>
+            </template>
+            <template v-else>
+              <router-link to="/login" class="nav-link">
+                登录
+              </router-link>
+              <router-link to="/register" class="nav-link">
+                注册
+              </router-link>
+            </template>
+          </div>
       </div>
     </nav>
+      
 
-    <!--路由出口-->
-    <!--路由视图出口的作用是，匹配到的页面组件会渲染在这里-->
-    <main class="main-content">
+
+    <!-- 路由出口：当前页面组件渲染在这里 -->
+    <main class="content-shell">
       <router-view />
     </main>
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { getToken,getUser,removeUser, removeToken } from './utils/auth'
+<script>
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+// 导入认证工具函数（来自 utils/auth.js）
+import { clearAuth, getCurrentUser, isLoggedIn } from './utils/auth'
 
-//创建路由实例
-const router = useRouter()
+export default {
+  name: 'App',
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
 
-//一、处理isLoggedIn变量
-//获取Token，判断用户是否登录，获取到token表示有token，即为登录状态
-const isLoggedIn = computed(() =>!!getToken())
+    // 响应式状态：登录状态和当前用户
+    const loggedIn = ref(false)
+    const currentUser = ref(null)
 
-//二、处理username变量
-//vue中的计算属性 computed
-const username = computed(() => {
-  //读取本地存储的用户对象
-  const userser = getUser()
-  //如果存在用户对象，则返回用户名，不存在返回空字符串
-  return user ? user.username : ''
-})
+    /**
+     * syncAuthState：将 localStorage 中的登录态同步到响应式变量
+     *
+     * 为什么需要这个函数？
+     * - localStorage 变化不会自动触发 Vue 视图更新
+     * - 需要手动读取并更新 ref，导航栏才会刷新
+     *
+     * 调用时机：组件挂载时、路由变化时、登出后
+     */
+    const syncAuthState = () => {
+      loggedIn.value = isLoggedIn()
+      currentUser.value = getCurrentUser()
+    }
 
-//三、处理退出按钮(定义logout方法)
-const logout = () => {
-  //删除本地存储的登录凭证token
-  removeToken()
-  //删除本地存储的用户信息
-  removeUser()
-  //使用路由跳转到登录页面
-  router.push('/login')
+    /**
+     * username：计算属性，优先显示昵称，其次用户名
+     */
+    const username = computed(() => {
+      if (!currentUser.value) return ''
+      return currentUser.value.nickname || currentUser.value.username || '已登录'
+    })
+
+    /**
+     * logout：退出登录
+     * 1. await clearAuth() -- 清除 localStorage + 通知后端注销
+     * 2. syncAuthState() -- 同步状态，导航栏立即变回"登录/注册"
+     * 3. router.push('/login') -- 跳转到登录页
+     */
+    const logout = async () => {
+      await clearAuth()
+      syncAuthState()
+      router.push('/login')
+    }
+
+    // 路由变化时重新同步认证状态（确保导航栏显示正确的登录信息）
+    watch(() => route.fullPath, syncAuthState)
+
+    // 组件挂载时同步认证状态（页面刷新后从 localStorage 恢复登录态）
+    onMounted(syncAuthState)
+
+    return {
+      loggedIn,
+      username,
+      logout
+    }
+  }
 }
-
 </script>

@@ -1,15 +1,20 @@
 import { createApp } from 'vue'
+// Vue3 UI组件库
 import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css' 
-
+// Pinia状态管理库的工厂函数
+import { createPinia } from 'pinia'
+// 引入Element Plus的样式文件
+import 'element-plus/dist/index.css'
 import App from './App.vue'
+// 引入路由实例
 import router from './router'
-import './styles.css'
+// 全局样式
+import './style.css'
 
+//createApp(App).mount('#app')
 
-// createApp(App).mount('#app')
-
-const app = createApp(App)
-app.use(router)
+const app=createApp(App)
+app.use(createPinia())
 app.use(ElementPlus)
+app.use(router)
 app.mount('#app')

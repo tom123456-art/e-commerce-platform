@@ -1,0 +1,9 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#F5F4FF"/>
+  <rect x="128" y="112" width="152" height="236" rx="40" fill="#132238"/>
+  <rect x="150" y="140" width="108" height="180" rx="26" fill="#4F7CFF"/>
+  <circle cx="204" cy="230" r="26" fill="#E5EBFF"/>
+  <rect x="352" y="112" width="160" height="236" rx="40" fill="#20C6C8"/>
+  <rect x="378" y="142" width="108" height="176" rx="24" fill="#DFFFFE"/>
+  <text x="112" y="430" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">影音娱乐</text>
+</svg>

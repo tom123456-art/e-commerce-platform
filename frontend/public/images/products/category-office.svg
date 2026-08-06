@@ -1,0 +1,10 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#F3F7FB"/>
+  <rect x="92" y="104" width="292" height="178" rx="20" fill="#132238"/>
+  <rect x="112" y="122" width="252" height="138" rx="12" fill="#DCEAF8"/>
+  <rect x="208" y="284" width="62" height="48" rx="12" fill="#4F7CFF"/>
+  <rect x="162" y="332" width="154" height="16" rx="8" fill="#4F7CFF"/>
+  <rect x="430" y="132" width="96" height="184" rx="18" fill="#20C6C8"/>
+  <rect x="448" y="158" width="60" height="130" rx="10" fill="#D9FFFE"/>
+  <text x="90" y="430" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">电脑办公</text>
+</svg>

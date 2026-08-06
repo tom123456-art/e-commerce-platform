@@ -1,0 +1,8 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#F3FBF5"/>
+  <circle cx="184" cy="218" r="82" fill="#20C6C8"/>
+  <path d="M146 180C178 180 200 202 200 234C200 266 178 288 146 288C114 288 92 266 92 234C92 202 114 180 146 180Z" fill="#E1FFFB"/>
+  <rect x="318" y="140" width="220" height="84" rx="24" fill="#4F7CFF"/>
+  <rect x="348" y="246" width="160" height="70" rx="22" fill="#132238" fill-opacity="0.9"/>
+  <text x="108" y="430" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">运动户外</text>
+</svg>

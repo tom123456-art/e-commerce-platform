@@ -1,0 +1,8 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#F5F7FA"/>
+  <rect x="120" y="110" width="400" height="230" rx="28" fill="#E1E8F0"/>
+  <rect x="156" y="146" width="328" height="158" rx="18" fill="#4F7CFF" fill-opacity="0.2"/>
+  <circle cx="250" cy="220" r="34" fill="#20C6C8" fill-opacity="0.5"/>
+  <path d="M332 276L390 212L454 276H332Z" fill="#132238" fill-opacity="0.3"/>
+  <text x="184" y="428" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">优选商品</text>
+</svg>

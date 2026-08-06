@@ -143,7 +143,7 @@ export default{
     // 管理员判断
     const isAdminUser = computed(() => isAdmin())
     // 3、工具函数
-    const goToProduct = (id) => router.push(`/product/${id}`)
+    const goToProduct = (id) => router.push(`/products/${id}`)
     const resolveImage = (product) => resolveProductImage(product)
     const editProduct = (productId) => 
       openAdminWindow(`/products/${productId}/edit`)

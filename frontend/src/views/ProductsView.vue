@@ -93,8 +93,8 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import http from '../utils/http'
-import openAdminWindow from '../utils/appLinks'
+import  http  from '../utils/http'
+import { openAdminWindow } from '../utils/appLinks'
 import { isAdmin } from '../utils/auth'
 import { PRODUCT_CATEGORIES, getCategoryLabel, resolveProductImage } from '../utils/productCatalog'
 

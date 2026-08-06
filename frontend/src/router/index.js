@@ -25,14 +25,13 @@ const routes = [
         name: 'Register',
         component: ()=> import('../views/RegisterView.vue'),
         meta: { gusetOnly: true } // 仅限游客访问
-    }
-    ,
+    },
     // 商品浏览
-    // {
-    //     path: '/products',
-    //     name: 'Products',
-    //     component: ()=> import('../views/ProductsView.vue')
-    // },
+    {
+        path: '/products',
+        name: 'Products',
+        component: ()=> import('../views/ProductsView.vue')
+    },
     // {
     //     path: '/products/:id',
     //     name: 'Product',

@@ -19,7 +19,7 @@
               <h2>我的购物车</h2>
             </div>
             <!-- 修改: 添加清空购物车按钮，方便用户一键清除所有商品 -->
-            <button type="button" class="btn btn-secondary clear-btn" @click="clearCart">
+            <button type="button" class="clear-btn" @click="clearCart">
               清空购物车
             </button>
           </div>
@@ -334,12 +334,39 @@ export default {
   margin: 0;
   font-size: 26px;
   color: #232d42;
+  white-space: nowrap;
 }
 
 .clear-btn {
-  color: #4f566b;
-  background: #f5f7fb;
-  border: 1px solid #d9e2ef;
+  width: auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: #e93f3f;
+  background: #fff;
+  border: 1px solid rgba(233, 63, 63, 0.25);
+  border-radius: 10px;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.clear-btn::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7zm3-3h6l1 2H8l1-2zM4 6h16' fill='black'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7zm3-3h6l1 2H8l1-2zM4 6h16' fill='black'/></svg>") center / contain no-repeat;
+}
+
+.clear-btn:hover {
+  background: #fff5f5;
+  border-color: rgba(233, 63, 63, 0.45);
 }
 
 .cart-list {
@@ -554,8 +581,21 @@ export default {
   }
 
   .cart-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cart-header h2 {
+    font-size: 20px;
+    white-space: nowrap;
+  }
+
+  .clear-btn {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
   }
 
   .cart-item {

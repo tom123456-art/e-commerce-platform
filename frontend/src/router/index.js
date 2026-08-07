@@ -45,12 +45,12 @@ const routes = [
     //     component: ()=> import('../views/AIChatView.vue'),
     //     meta: { requiresAuth: true } // 需要登录权限
     // },
-    // {
-    //     path: '/cart',
-    //     name: 'Cart',
-    //     component: ()=> import('../views/CartView.vue'),
-    //     meta: { requiresAuth: true } // 需要登录权限
-    // },
+    {
+        path: '/cart',
+        name: 'Cart',
+        component: ()=> import('../views/CartView.vue'),
+        meta: { requiresAuth: true } // 需要登录权限
+    },
     // {   
     //     path: '/orders',
     //     name: 'Orders',

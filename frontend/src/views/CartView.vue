@@ -82,8 +82,14 @@
         <span>Address</span>
         <h3>收货地址</h3>
       </div>
-      <a href="#address-management" @click.prevent="toggleAddressManager">
-        {{ showAddressManager ? '收起收货地址管理':'点击显示收货地址管理' }}
+      <a
+        class="address-toggle-link"
+        :class="{ 'is-open': showAddressManager }"
+        href="#address-management"
+        @click.prevent="toggleAddressManager"
+      >
+        <span class="toggle-icon"></span>
+        {{ showAddressManager ? '收起收货地址管理' : '点击显示收货地址管理' }}
       </a>
     </section>
 
@@ -206,8 +212,8 @@ export default {
         await router.replace({
           path: '/cart',
           // 把地址面板已展开的状态写入URL，如果后面刷新页面能自动恢复展开状态
-          // 而不是回到收起状态
-          hash: 'address-management'
+          // 而不是回到收起状态（hash 必须以 # 开头，否则 Vue Router 会告警）
+          hash: '#address-management'
         })
         // 让页面平滑的滚动到地址区块，当然必须先展开才能滚的动（有元素）
         await scrollToAddressSection()
@@ -242,6 +248,7 @@ export default {
       totalPrice,
       totalCount,
       showAddressManager,
+      updateQuantity,
       removeItem,
       clearCart,
       checkout,
@@ -537,6 +544,52 @@ export default {
 
 .checkout-btn {
   width: 100%;
+}
+
+/* 收货地址展开/收起切换链接 */
+.address-toggle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(64, 158, 255, 0.08);
+  border: 1px solid rgba(64, 158, 255, 0.28);
+  color: #409eff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.address-toggle-link:hover {
+  background: rgba(64, 158, 255, 0.14);
+  border-color: rgba(64, 158, 255, 0.45);
+}
+
+.address-toggle-link:active {
+  transform: translateY(1px);
+}
+
+/* 展开后嵌入的地址管理区：与上方切换链接保持紧凑的间距 */
+.address-embed-section {
+  margin-top: 10px;
+}
+
+/* 左侧小箭头图标：展开时由下转上 */
+.address-toggle-link .toggle-icon {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+.address-toggle-link.is-open .toggle-icon {
+  transform: rotate(-135deg) translateY(-2px);
 }
 
 .summary-note {

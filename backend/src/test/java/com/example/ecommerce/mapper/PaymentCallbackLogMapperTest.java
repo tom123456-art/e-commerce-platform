@@ -31,9 +31,9 @@ class PaymentCallbackLogMapperTest {
         testLog.setTradeNo("TRD" + System.currentTimeMillis());
         testLog.setTradeStatus("TRADE_SUCCESS");
         testLog.setRawPayload("{\"test\":\"data\"}");
-        testLog.setVerified(0);
-        testLog.setProcessed(0);
-        testLog.setSuccess(0);
+        testLog.setVerified(false);
+        testLog.setProcessed(false);
+        testLog.setSuccess(false);
     }
 
     @org.junit.jupiter.api.Test
@@ -46,9 +46,9 @@ class PaymentCallbackLogMapperTest {
     @org.junit.jupiter.api.Test
     void updateResult() {
         paymentCallbackLogMapper.insert(testLog);
-        testLog.setVerified(1);
-        testLog.setProcessed(1);
-        testLog.setSuccess(1);
+        testLog.setVerified(true);
+        testLog.setProcessed(true);
+        testLog.setSuccess(true);
         int count = paymentCallbackLogMapper.updateResult(testLog);
         assertEquals(1, count);
     }

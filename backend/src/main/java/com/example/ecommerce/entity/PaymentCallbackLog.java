@@ -5,63 +5,63 @@ import java.util.Date;
 import lombok.Data;
 
 /**
- * 
+ *
  * @TableName payment_callback_log
  */
 @Data
 public class PaymentCallbackLog implements Serializable {
     /**
-     * 
+     *
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private String orderNo;
 
     /**
-     * 
+     *
      */
     private String tradeNo;
 
     /**
-     * 
+     *
      */
     private String tradeStatus;
 
     /**
-     * 
+     *
      */
     private String rawPayload;
 
     /**
-     * 
+     *
      */
-    private Integer verified;
+    private Boolean verified;
 
     /**
-     * 
+     *
      */
-    private Integer processed;
+    private Boolean processed;
 
     /**
-     * 
+     *
      */
-    private Integer success;
+    private Boolean success;
 
     /**
-     * 
+     *
      */
     private String errorMessage;
 
     /**
-     * 
+     *
      */
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 

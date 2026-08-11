@@ -5,12 +5,12 @@
 <mapper namespace="com.example.ecommerce.mapper.OrderItemMapper">
 
     <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.OrderItem">
-            <id property="id" column="id" />
-            <result property="orderId" column="order_id" />
-            <result property="productId" column="product_id" />
-            <result property="productName" column="product_name" />
-            <result property="price" column="price" />
-            <result property="quantity" column="quantity" />
+        <id property="id" column="id" />
+        <result property="orderId" column="order_id" />
+        <result property="productId" column="product_id" />
+        <result property="productName" column="product_name" />
+        <result property="price" column="price" />
+        <result property="quantity" column="quantity" />
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -24,13 +24,10 @@
     <insert id="insertBatch" parameterType="java.util.List">
         insert into order_item (order_id, product_id, product_name, price, quantity)
         values
-        <foreach collection="list" item="item" separator=",">
+        <foreach collection="orderItems" item="item" separator=",">
             (#{item.orderId}, #{item.productId}, #{item.productName}, #{item.price}, #{item.quantity})
         </foreach>
     </insert>
-    <delete id="deleteByOrderId">
-        delete from order_item where order_id = #{orderId}
-    </delete>
     <select id="selectAll" resultMap="BaseResultMap">
         select <include refid="Base_Column_List" />
         from order_item

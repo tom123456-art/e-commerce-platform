@@ -241,7 +241,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void delete(Long id) {
-        orderItemMapper.deleteByOrderId(id);
+        // [FIX-3] 软删除：仅将订单状态置为 -1（已删除），不再物理删除订单及其明细，
+        // 以保留财务/审计所需的订单与订单项数据。
         orderMapper.delete(id);
         clearShowcaseCache();
     }

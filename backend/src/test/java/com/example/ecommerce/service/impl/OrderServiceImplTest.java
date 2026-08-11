@@ -126,7 +126,7 @@ class OrderServiceImplTest {
         Order order = new Order();
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.emptyList()));
+                () -> orderService.save(order, Collections.emptyList()));
 
         assertEquals(Result.BAD_REQUEST_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -149,7 +149,7 @@ class OrderServiceImplTest {
         when(productMapper.decreaseStock(9L, 3)).thenReturn(0);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.singletonList(orderItem)));
+                () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.CONFLICT_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -171,7 +171,7 @@ class OrderServiceImplTest {
         when(productMapper.selectById(9L)).thenReturn(product);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.singletonList(orderItem)));
+                () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -193,6 +193,8 @@ class OrderServiceImplTest {
         orderItem.setQuantity(1);
 
         when(orderMapper.selectByOrderNo("20260416003")).thenReturn(existing);
+        // [TEST-FIX] 补齐 getDetailById 内部对 selectById 的 stub，否则查到 null 会抛 404（与本次修复无关，属预存缺陷）
+        when(orderMapper.selectById(55L)).thenReturn(existing);
 
         OrderDetailResponse response = orderService.save(order, Collections.singletonList(orderItem));
 
@@ -209,7 +211,7 @@ class OrderServiceImplTest {
         when(orderMapper.selectById(1L)).thenReturn(null);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.getDetailById(1L));
+                () -> orderService.getDetailById(1L));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
     }
@@ -261,11 +263,13 @@ class OrderServiceImplTest {
         verify(redisUtil).deleteByPattern("products:showcase:*");
     }
 
+    /**
+     * [FIX-3] 删除订单：改为软删除（仅将订单状态置为 -1），不再物理删除订单项。
+     */
     @Test
-    void deleteRemovesOrderAndItems() {
+    void deleteSoftDeletesOrder() {
         orderService.delete(1L);
 
-        verify(orderItemMapper).deleteByOrderId(1L);
         verify(orderMapper).delete(1L);
         verify(redisUtil).deleteByPattern("products:showcase:*");
     }

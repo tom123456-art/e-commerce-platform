@@ -27,7 +27,7 @@
             useGeneratedKeys="true" keyProperty="id">
         insert into
             `order` (user_id, order_no, total_amount, status, address,
-                   phone, receiver, create_time, update_time)
+                     phone, receiver, create_time, update_time)
         values (#{userId}, #{orderNo}, #{totalAmount}, #{status}, #{address},
                 #{phone}, #{receiver}, now(), now())
     </insert>
@@ -50,31 +50,38 @@
             update_time = now()
         where order_no = #{orderNo}
     </update>
-    <delete id="delete">
-        delete from `order`
+    <!-- [FIX-3] 软删除：将状态置为 -1（已删除），保留订单与订单项数据用于审计/财务 -->
+    <update id="delete">
+        update `order`
+        set status = -1, update_time = now()
         where id = #{id}
-    </delete>
+    </update>
     <select id="selectById" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"></include>
         from `order`
-        where id = #{id}
+        <!-- [FIX-3] 过滤已软删除的订单（status = -1） -->
+        where id = #{id} and status != -1
     </select>
     <select id="selectByOrderNo" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"></include>
         from `order`
-        where order_no = #{orderNo}
+        <!-- [FIX-3] 过滤已软删除的订单（status = -1） -->
+        where order_no = #{orderNo} and status != -1
     </select>
     <select id="selectByUserIdOrders" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"></include>
         from `order`
-        where user_id = #{userId}
+        <!-- [FIX-3] 过滤已软删除的订单（status = -1） -->
+        where user_id = #{userId} and status != -1
     </select>
     <select id="selectAll" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"></include>
         from `order`
+        <!-- [FIX-3] 过滤已软删除的订单（status = -1） -->
+        where status != -1
     </select>
 </mapper>

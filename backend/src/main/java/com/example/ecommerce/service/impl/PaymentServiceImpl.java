@@ -81,14 +81,17 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PaymentService self;
 
-    public PaymentServiceImpl(AlipayProperties alipayProperties, OrderService orderService, OrderMessagePublisher orderMessagePublisher, PaymentCallbackLogMapper paymentCallbackLogMapper, ProductMetricService productMetricService) {
+    public PaymentServiceImpl(AlipayProperties alipayProperties,
+                              OrderService orderService,
+                              OrderMessagePublisher orderMessagePublisher,
+                              PaymentCallbackLogMapper paymentCallbackLogMapper,
+                              ProductMetricService productMetricService) {
         this.alipayProperties = alipayProperties;
         this.orderService = orderService;
         this.orderMessagePublisher = orderMessagePublisher;
         this.paymentCallbackLogMapper = paymentCallbackLogMapper;
         this.productMetricService = productMetricService;
     }
-
 
     /**
      * 【创建支付】根据配置选择真实支付宝或 Mock 模式。

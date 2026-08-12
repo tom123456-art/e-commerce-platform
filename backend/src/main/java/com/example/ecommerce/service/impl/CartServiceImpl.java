@@ -6,15 +6,13 @@ import com.example.ecommerce.dto.CartCheckoutRequest;
 import com.example.ecommerce.dto.CartItemRequest;
 import com.example.ecommerce.dto.CartItemResponse;
 import com.example.ecommerce.dto.OrderDetailResponse;
-import com.example.ecommerce.entity.CartItem;
-import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.entity.*;
 import com.example.ecommerce.mapper.CartItemMapper;
-import com.example.ecommerce.service.CartService;
-import com.example.ecommerce.service.ProductMetricService;
-import com.example.ecommerce.service.ProductService;
+import com.example.ecommerce.service.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +21,15 @@ public class CartServiceImpl implements CartService {
     private final CartItemMapper cartItemMapper;
     private final ProductService productService;
     private final ProductMetricService productMetricService;
+    private final UserAddressService userAddressService;
+    private final OrderService orderService;
 
-    public CartServiceImpl(CartItemMapper cartItemMapper, ProductService productService, ProductMetricService productMetricService) {
+    public CartServiceImpl(CartItemMapper cartItemMapper, ProductService productService, ProductMetricService productMetricService, UserAddressService userAddressService, OrderService orderService) {
         this.cartItemMapper = cartItemMapper;
         this.productService = productService;
         this.productMetricService = productMetricService;
+        this.userAddressService = userAddressService;
+        this.orderService = orderService;
     }
 
     /**
@@ -134,7 +136,18 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void updateItem(Long userId, Long itemId, Integer quantity) {
-
+        if (quantity == null || quantity <= 0)
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "数量必须大于 0");
+        // 查询购物车
+        CartItem cartItem = cartItemMapper.selectById(itemId);
+        if (cartItem == null || !userId.equals(cartItem.getUserId()))
+            throw new BusinessException(Result.NOT_FOUND_CODE, "购物车不存在");
+        // 查询商品信息
+        Product product = productService.getById(cartItem.getProductId());
+        // 校验商品的库存
+        validateStock(product, quantity);
+        // 更新数量
+        cartItemMapper.updateQuantity(itemId, userId, quantity);
     }
 
     /**
@@ -146,7 +159,7 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void removeItem(Long userId, Long itemId) {
-
+        cartItemMapper.deleteByIdAndUserId(itemId,userId);
     }
 
     /**
@@ -156,7 +169,7 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void clear(Long userId) {
-
+        cartItemMapper.deleteByUserId(userId);
     }
 
     /**
@@ -168,7 +181,56 @@ public class CartServiceImpl implements CartService {
      * @return 订单详情（含订单号、总金额、订单项列表）
      */
     @Override
+    @Transactional
     public OrderDetailResponse checkout(Long userId, CartCheckoutRequest request) {
-        return null;
+        // 解析收货地址
+        UserAddress address = resolveAddress(userId, request);
+        // 查询购物车中的所有商品
+        List<CartItemResponse> cartItems = getCart(userId);
+        if (cartItems.isEmpty())
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "购物车为空，无法结算");
+        // 创建订单
+        Order order = new Order();
+        order.setUserId(userId);
+        order.setAddress(address.getFullAddress());
+        order.setPhone(address.getPhone());
+        order.setReceiver(address.getReceiver());
+
+        // 创建订单项
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CartItemResponse item : cartItems){
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(item.getProductId());
+            orderItem.setProductName(item.getProductName());
+            orderItem.setPrice(item.getPrice());
+            orderItem.setQuantity(item.getQuantity());
+            orderItems.add(orderItem);
+        }
+
+        // 持久化
+        OrderDetailResponse detailResponse = orderService.save(order, orderItems);
+
+        // 清空当前的购物车
+        cartItemMapper.deleteByUserId(userId);
+
+        return detailResponse;
+    }
+
+    /**
+     * 解析地址
+     * @param userId
+     * @param request
+     * @return
+     */
+    private UserAddress resolveAddress(Long userId, CartCheckoutRequest request) {
+        // 如果用户指定收货地址，优先级最高
+        if (request != null && request.getAddressId() != null)
+            return userAddressService.getOwnedAddress(userId, request.getAddressId());
+        // 使用默认地址，优先级第二
+        UserAddress defaultAddress = userAddressService.getDefaultAddress(userId);
+        if (defaultAddress != null)
+            return defaultAddress;
+        // 无可用地址，优先级最后
+        throw new BusinessException(Result.BAD_REQUEST_CODE, "请添加收货地址");
     }
 }

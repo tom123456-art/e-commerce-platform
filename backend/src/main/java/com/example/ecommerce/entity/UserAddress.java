@@ -65,5 +65,14 @@ public class UserAddress implements Serializable {
      */
     private Date updateTime;
 
+    public String getFullAddress(){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(province.trim());
+        stringBuilder.append(city.trim());
+        stringBuilder.append(district.trim());
+        stringBuilder.append(detailAddress.trim());
+        return stringBuilder.toString();
+    }
+
     private static final long serialVersionUID = 1L;
 }

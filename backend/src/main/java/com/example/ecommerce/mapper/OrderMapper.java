@@ -7,11 +7,11 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * @author waqwb
- * @description 针对表【order】的数据库操作Mapper
- * @createDate 2026-07-29 14:09:38
- * @Entity com.example.ecommerce.entity.Order
- */
+* @author waqwb
+* @description 针对表【order】的数据库操作Mapper
+* @createDate 2026-07-29 14:09:38
+* @Entity com.example.ecommerce.entity.Order
+*/
 @Mapper
 public interface OrderMapper {
     // 根据id查询订单
@@ -39,3 +39,7 @@ public interface OrderMapper {
     // 根据id删除订单，建议删除的逻辑为status=-1
     int delete(Long id);
 }
+
+
+
+

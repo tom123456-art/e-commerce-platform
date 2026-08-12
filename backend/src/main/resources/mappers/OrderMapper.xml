@@ -27,7 +27,7 @@
             useGeneratedKeys="true" keyProperty="id">
         insert into
             `order` (user_id, order_no, total_amount, status, address,
-                     phone, receiver, create_time, update_time)
+                   phone, receiver, create_time, update_time)
         values (#{userId}, #{orderNo}, #{totalAmount}, #{status}, #{address},
                 #{phone}, #{receiver}, now(), now())
     </insert>

@@ -52,7 +52,7 @@ public class Product implements Serializable {
     private Long merchantId;
 
     /**
-     * 商品状态：1.上架  0.下架
+     * 商品状态：1上架 0下架
      */
     private Integer status;
 

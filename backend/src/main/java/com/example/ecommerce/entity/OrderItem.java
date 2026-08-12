@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
- * 
+ * 订单明细
  * @TableName order_item
  */
 @Data

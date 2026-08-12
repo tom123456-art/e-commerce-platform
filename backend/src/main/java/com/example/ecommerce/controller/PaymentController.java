@@ -29,10 +29,12 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final OrderService orderService;
+    private final AlipayProperties alipayProperties;
 
-    public PaymentController(PaymentService paymentService, OrderService orderService) {
+    public PaymentController(PaymentService paymentService, OrderService orderService, AlipayProperties alipayProperties) {
         this.paymentService = paymentService;
         this.orderService = orderService;
+        this.alipayProperties = alipayProperties;
     }
 
     /**
@@ -68,6 +70,10 @@ public class PaymentController {
             @RequestParam String orderNo,
             @RequestParam(required = false) String amount,
             @RequestParam(required = false) String subject){
+        // Mock 支付开关守卫：未开启时拒绝访问（与测试期望的 403 对应）
+        if (!alipayProperties.isMockEnabled()) {
+            throw new BusinessException(Result.FORBIDDEN_CODE, "Mock 支付未开启");
+        }
         Map<String,String> params = new LinkedHashMap<>();
         params.put("orderNo", orderNo);
         params.put("status", "SUCCESS");
@@ -85,6 +91,18 @@ public class PaymentController {
                 .replace("{{orderNo}}", escapeHtml(orderNo))
                 .replace("{{amount}}", escapeHtml(amount == null ? "0.00" : amount))
                 .replace("{{subject}}", escapeHtml(subject == null ? "-" : subject));
+    }
+
+    /**
+     * 支付宝异步回调（服务端到服务端调用，无需用户登录，已在 SecurityConfig 放行）。
+     * 透传原始回调参数给 PaymentService，并按支付宝规范原样返回纯文本 "success"/"failure"：
+     *   - 返回 "success" 告知支付宝处理成功，停止重试；
+     *   - 返回 "failure" 告知支付宝处理失败，支付宝会在 25h 内重试 8 次。
+     */
+    @PostMapping("/callback")
+    public String handleCallback(@RequestParam Map<String, String> params) {
+        boolean success = paymentService.handleCallback(params);
+        return success ? "success" : "failure";
     }
 
     /**

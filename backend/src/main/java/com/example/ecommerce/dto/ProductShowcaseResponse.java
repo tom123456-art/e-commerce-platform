@@ -29,6 +29,9 @@ import com.example.ecommerce.entity.Product;
  *   <li><b>耦合加剧</b>：推荐算法的变化会直接影响数据模型</li>
  * </ul>
  * <p>使用 DTO 组合模式，Entity 保持纯净，推荐元数据只在需要时出现。</p>
+ *
+ * @see Product 商品实体
+ * @see ShowcaseStrategyResponse 展陈策略配置响应
  */
 public class ProductShowcaseResponse {
 

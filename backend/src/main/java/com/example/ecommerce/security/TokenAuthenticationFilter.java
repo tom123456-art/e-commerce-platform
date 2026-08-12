@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Token 认证过滤器 —— 整个鉴权体系的"守门人"。
+ * Token 认证过滤器 -- 整个鉴权体系的"守门人"。
  *
  * 在每个 HTTP 请求到达 Controller 之前执行（位于 Spring Security 过滤链中）：
  * 1. 从 Authorization 请求头提取 Bearer Token

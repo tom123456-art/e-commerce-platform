@@ -51,12 +51,24 @@ const routes = [
         component: ()=> import('../views/CartView.vue'),
         meta: { requiresAuth: true } // 需要登录权限
     },
-    // {   
-    //     path: '/orders',
-    //     name: 'Orders',
-    //     component: ()=> import('../views/OrdersView.vue'),
-    //     meta: { requiresAuth: true } // 需要登录权限
-    // },
+    {   
+        path: '/orders',
+        name: 'Orders',
+        component: ()=> import('../views/OrdersView.vue'),
+        meta: { requiresAuth: true } // 需要登录权限
+    },
+    {
+        path: '/checkout',
+        name: 'Checkout',
+        component: () => import('../views/CheckoutView.vue'),
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/orders/:id',
+        name: 'OrderDetail',
+        component: () => import('../views/OrderDetailView.vue'),
+        meta: { requiresAuth: true }
+    },
     {
         path: '/:pathMatch(.*)*', // 匹配所有未定义的路由
         redirect: '/' // 重定向到首页

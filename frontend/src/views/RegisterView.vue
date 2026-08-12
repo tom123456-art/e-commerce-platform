@@ -95,7 +95,7 @@ import http from '../utils/http'
 // 正则常量定义在组件外，避免每次校验重建正则对象（性能优化）
 const usernamePattern = /^[A-Za-z0-9_]{4,20}$/
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!_.\-])[A-Za-z\d@#$%^&+=!_.\-]{8,20}$/
-const phonePattern = /^1\d{10}$/
+const phonePattern = /^1[3-9]\d{9}$/
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default {

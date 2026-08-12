@@ -1,13 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
+<!-- lang="zh-CN" 声明页面语言为简体中文，有利于浏览器翻译和屏幕阅读器识别 -->
 <html lang="zh-CN">
   <head>
+    <!-- charset="UTF-8" 指定字符编码，防止中文显示成乱码 -->
     <meta charset="UTF-8" />
+    <!-- 网站图标（浏览器标签页上的小图标） -->
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- viewport 设置：让页面在手机上正确缩放，是「响应式布局」的前提 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 网页标题，显示在浏览器标签页上 -->
     <title>电商平台</title>
   </head>
   <body>
+    <!-- id="app" 的空 div 是「挂载点」：整个 Vue 应用最终都会渲染到这个容器里。
+         注意它的 id 必须和 main.js 中 app.mount('#app') 的参数一致 -->
     <div id="app"></div>
+    <!-- type="module" 表示用 ES Module 方式加载入口脚本，
+         这样 main.js 里才能使用 import 语法引入各种模块 -->
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

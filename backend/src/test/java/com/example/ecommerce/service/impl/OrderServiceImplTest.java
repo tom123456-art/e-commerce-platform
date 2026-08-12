@@ -126,7 +126,7 @@ class OrderServiceImplTest {
         Order order = new Order();
 
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> orderService.save(order, Collections.emptyList()));
+            () -> orderService.save(order, Collections.emptyList()));
 
         assertEquals(Result.BAD_REQUEST_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -149,7 +149,7 @@ class OrderServiceImplTest {
         when(productMapper.decreaseStock(9L, 3)).thenReturn(0);
 
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> orderService.save(order, Collections.singletonList(orderItem)));
+            () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.CONFLICT_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -171,7 +171,7 @@ class OrderServiceImplTest {
         when(productMapper.selectById(9L)).thenReturn(product);
 
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> orderService.save(order, Collections.singletonList(orderItem)));
+            () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
@@ -211,7 +211,7 @@ class OrderServiceImplTest {
         when(orderMapper.selectById(1L)).thenReturn(null);
 
         BusinessException exception = assertThrows(BusinessException.class,
-                () -> orderService.getDetailById(1L));
+            () -> orderService.getDetailById(1L));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
     }

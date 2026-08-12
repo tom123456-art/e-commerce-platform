@@ -1,17 +1,18 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.config.RateLimitConfig;
+import com.example.ecommerce.config.RateLimitFilter;
+import com.example.ecommerce.config.SecurityConfig;
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.security.TokenAuthenticationFilter;
 import com.example.ecommerce.service.CartService;
 import com.example.ecommerce.service.ProductMetricService;
 import com.example.ecommerce.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,15 +26,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles("test")
 @WebMvcTest(
-        controllers = {
-                ProductController.class
-        },
+        controllers = {ProductController.class},
+        excludeFilters = @ComponentScan.Filter(
+                type = FilterType.ASSIGNABLE_TYPE,
+                classes = {SecurityConfig.class, RateLimitConfig.class, RateLimitFilter.class, TokenAuthenticationFilter.class}
+        ),
         properties = {
                 "spring.autoconfigure.exclude=" +
                         "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
                         "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
-                        "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration" +
-                        "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration"
+                        "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
         }
 )
 class ApiControllerTest {

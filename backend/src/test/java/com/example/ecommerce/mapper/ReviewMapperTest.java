@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -19,6 +20,7 @@ import java.util.List;
 @ActiveProfiles("test")
 @Transactional
 class ReviewMapperTest {
+
     @Autowired
     private ReviewMapper reviewMapper;
 
@@ -31,16 +33,17 @@ class ReviewMapperTest {
         review.setUserId(1L);
         review.setOrderId(1L);
         review.setRating(5);
-        review.setContent("This is a test review.");
+        review.setContent("This is a great product!");
     }
 
     @Test
-    void selectByProductId() {
+    void selectByProductId(){
         reviewMapper.insertReview(review);
         List<Review> reviews = reviewMapper.selectByProductId(1L);
-        for (Review r : reviews)
+        for (Review r: reviews)
             System.out.println(r);
     }
+
 
     @Test
     void selectByMerchantProducts() {
@@ -58,7 +61,7 @@ class ReviewMapperTest {
     @Test
     void updateReply() {
         reviewMapper.insertReview(review);
-        reviewMapper.updateReply(review.getId(), "Thank");
+        reviewMapper.updateReply(review.getId(), "Thank you");
     }
 
     @Test
@@ -69,18 +72,13 @@ class ReviewMapperTest {
 
     @Test
     void countByProductId() {
-        // 使用包装类 Integer 接收，它可以为 null
-        Integer count = reviewMapper.countByProductId(1L);
-
-        // 如果 count 为 null，说明没有记录，我们将其视为 0
-        int result = (count == null) ? 0 : count;
-
-        System.out.println(result);
+        int i = reviewMapper.countByProductId(1L);
+        System.out.println(i);
     }
 
     @Test
     void avgRatingByProductId() {
-        double d = reviewMapper.avgRatingByProductId(1L);
-        System.out.println(d);
+        double avgRating = reviewMapper.avgRatingByProductId(1L);
+        System.out.println(avgRating);
     }
 }

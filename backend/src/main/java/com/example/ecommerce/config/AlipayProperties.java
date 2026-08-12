@@ -1,7 +1,6 @@
 package com.example.ecommerce.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * 支付宝支付配置属性类。
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
  * 【Mock 模式】mockEnabled=true 时不调用真实支付宝 API，本地模拟支付流程，
  *   适用于前端开发、自动化测试、教学演示。
  */
-@Component
 @ConfigurationProperties(prefix = "ecommerce.payment.alipay")
 public class AlipayProperties {
 

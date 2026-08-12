@@ -13,15 +13,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * RabbitMQ 配置类
- * 实现了基于死信队列的消息重试机制
+ * RabbitMQ 消息队列配置类 -- 定义"重试 + 死信"模式的完整消息架构。
+ *
+ * 架构概览（以订单创建队列为例）：
+ *
+ *   [生产者] -> [Event Exchange] -> [order-created 主队列] -> [消费者]
+ *                                       ↓ (消费失败，拒绝)
+ *                              [Retry Exchange] -> [order-created.retry 重试队列 (TTL=30s)]
+ *                                       ↓ (TTL 到期，死信回主交换机)
+ *                              [Event Exchange] -> [主队列] (重新消费)
+ *                                       ↓ (超过最大重试次数)
+ *                              [DLQ Exchange] -> [order-created.dlq 死信队列] -> [人工处理]
+ *
+ * 核心机制：
+ *   - 主队列配置 x-dead-letter-exchange -> 消费失败的消息路由到重试交换机
+ *   - 重试队列配置 x-message-ttl -> 消息存活 30 秒后死信回主交换机（实现延迟重试）
+ *   - 死信队列存储最终失败的消息，等待人工介入
+ *
+ * @ConditionalOnProperty：只在 ecommerce.rabbit.enabled=true 时加载
+ *   测试环境设为 false 可跳过 RabbitMQ 配置
  */
 @Configuration
 @ConditionalOnProperty(prefix = "ecommerce.rabbit", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RabbitMqConfig {
 
-    // ==================== 属性注入 (已修复损坏的注解) ====================
-
+    // 从 application.yml 读取队列/交换机名称
     @Value("${ecommerce.rabbit.exchange}")
     private String eventExchange;
 
@@ -37,40 +53,34 @@ public class RabbitMqConfig {
     @Value("${ecommerce.rabbit.payment-status-queue}")
     private String paymentStatusQueue;
 
-    // 重试延迟时间：30秒
+    /** 重试队列消息存活时间（毫秒），TTL 到期后死信回主交换机 */
     private static final int RETRY_TTL_MS = 30000;
 
-    // ==================== 交换机定义 ====================
+    // ==================== 交换机（Exchange）====================
 
-    /**
-     * 业务主交换机
-     */
+    /** 主事件交换机：生产者发送消息的入口 */
     @Bean
     public DirectExchange eventDirectExchange() {
         return new DirectExchange(eventExchange, true, false);
     }
 
-    /**
-     * 重试消息中转交换机
-     */
+    /** 重试交换机：接收消费失败的消息，路由到重试队列 */
     @Bean
     public DirectExchange retryDirectExchange() {
         return new DirectExchange(retryExchange, true, false);
     }
 
-    /**
-     * 最终死信交换机（存储彻底失败的消息）
-     */
+    /** 死信交换机：接收超过最大重试次数的消息 */
     @Bean
     public DirectExchange deadLetterDirectExchange() {
         return new DirectExchange(deadLetterExchange, true, false);
     }
 
-    // ==================== 订单创建相关队列 ====================
+    // ==================== 队列（Queue）====================
 
     /**
-     * 订单创建主队列
-     * 配置：消息处理失败 -> 发送到 retryExchange
+     * 订单创建主队列。
+     * 配置死信路由：消费失败时消息发送到 retryExchange + 路由键 orderCreatedQueue.retry
      */
     @Bean
     public Queue orderCreatedQueue() {
@@ -81,8 +91,8 @@ public class RabbitMqConfig {
     }
 
     /**
-     * 订单创建重试队列（延迟队列）
-     * 配置：TTL 30秒 -> 过期后发送回 eventExchange
+     * 订单创建重试队列。
+     * 配置 TTL：消息存活 30 秒后死信回主交换机（eventExchange），实现延迟重试。
      */
     @Bean
     public Queue orderCreatedRetryQueue() {
@@ -93,19 +103,13 @@ public class RabbitMqConfig {
         return new Queue(orderCreatedQueue + ".retry", true, false, false, args);
     }
 
-    /**
-     * 订单创建死信队列（最终失败）
-     */
+    /** 订单创建死信队列：存储最终失败的消息 */
     @Bean
     public Queue orderCreatedDeadLetterQueue() {
         return new Queue(orderCreatedQueue + ".dlq", true);
     }
 
-    // ==================== 支付状态相关队列 ====================
-
-    /**
-     * 支付状态主队列
-     */
+    /** 支付状态主队列（结构同订单创建队列） */
     @Bean
     public Queue paymentStatusQueue() {
         Map<String, Object> args = new HashMap<>();
@@ -114,9 +118,7 @@ public class RabbitMqConfig {
         return new Queue(paymentStatusQueue, true, false, false, args);
     }
 
-    /**
-     * 支付状态重试队列
-     */
+    /** 支付状态重试队列 */
     @Bean
     public Queue paymentStatusRetryQueue() {
         Map<String, Object> args = new HashMap<>();
@@ -126,33 +128,32 @@ public class RabbitMqConfig {
         return new Queue(paymentStatusQueue + ".retry", true, false, false, args);
     }
 
-    /**
-     * 支付状态死信队列
-     */
+    /** 支付状态死信队列 */
     @Bean
     public Queue paymentStatusDeadLetterQueue() {
         return new Queue(paymentStatusQueue + ".dlq", true);
     }
 
-    // ==================== 绑定关系 ====================
+    // ==================== 绑定（Binding）====================
 
-    // --- 订单创建绑定 ---
+    /** 主队列绑定到主交换机（路由键 = 队列名） */
     @Bean
     public Binding orderCreatedBinding() {
         return BindingBuilder.bind(orderCreatedQueue()).to(eventDirectExchange()).with(orderCreatedQueue);
     }
 
+    /** 重试队列绑定到重试交换机 */
     @Bean
     public Binding orderCreatedRetryBinding() {
         return BindingBuilder.bind(orderCreatedRetryQueue()).to(retryDirectExchange()).with(orderCreatedQueue + ".retry");
     }
 
+    /** 死信队列绑定到死信交换机 */
     @Bean
-    public Binding orderCreatedDeadLetterBinding() {
+    public Binding orderCreatedDlqBinding() {
         return BindingBuilder.bind(orderCreatedDeadLetterQueue()).to(deadLetterDirectExchange()).with(orderCreatedQueue + ".dlq");
     }
 
-    // --- 支付状态绑定 ---
     @Bean
     public Binding paymentStatusBinding() {
         return BindingBuilder.bind(paymentStatusQueue()).to(eventDirectExchange()).with(paymentStatusQueue);
@@ -164,17 +165,33 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    public Binding paymentStatusDeadLetterBinding() {
+    public Binding paymentStatusDlqBinding() {
         return BindingBuilder.bind(paymentStatusDeadLetterQueue()).to(deadLetterDirectExchange()).with(paymentStatusQueue + ".dlq");
     }
 
-    // ==================== 模板配置 ====================
+    // ==================== 基础设施 Bean ====================
 
+    /** 消息转换器：使用 Jackson 将 Java 对象序列化为 JSON 消息体 */
+    @Bean
+    public Jackson2JsonMessageConverter messageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    /**
+     * RabbitTemplate：消息发送模板。
+     * 配置 Publisher Confirm 回调，确认消息是否到达 Broker。
+     */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        // 设置 JSON 序列化转换器
-        template.setMessageConverter(new Jackson2JsonMessageConverter());
+        template.setMessageConverter(messageConverter());
+        template.setMandatory(true);  // 消息无法路由时触发 returns 回调
+        // Publisher Confirm：消息到达 Broker 时回调
+        template.setConfirmCallback((correlationData, ack, cause) -> {
+            if (!ack && correlationData != null) {
+                // 生产环境应接入告警系统
+            }
+        });
         return template;
     }
 }

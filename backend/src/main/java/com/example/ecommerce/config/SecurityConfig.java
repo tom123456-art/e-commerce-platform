@@ -3,6 +3,7 @@ package com.example.ecommerce.config;
 import com.example.ecommerce.security.CustomUserDetailsService;
 import com.example.ecommerce.security.LegacyCompatiblePasswordEncoder;
 import com.example.ecommerce.security.TokenAuthenticationFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -42,6 +43,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableConfigurationProperties(AlipayProperties.class)
 public class SecurityConfig {
 
     /**
@@ -124,6 +126,10 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 // 公开接口：商品浏览（GET 请求）
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                // 公开接口：支付宝异步回调（服务端到服务端调用，不带用户 Token，已在 PaymentController 放行）
+                .requestMatchers("/api/payment/callback").permitAll()
+                // 公开接口：Mock 支付成功页（支付宝 mock 跳转为浏览器发起，通常不带用户 Token）
+                .requestMatchers("/api/payment/mock/success").permitAll()
                 // 管理员接口：用户管理、Excel 导入导出、后台管理
                 .requestMatchers("/api/users/**", "/api/excel/**", "/api/admin/**").hasRole("ADMIN")
                 // 管理员接口：商品的增删改（GET 已公开）

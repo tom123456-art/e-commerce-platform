@@ -186,6 +186,7 @@ export default {
     };
 
     onMounted(fetchProduct);
+    
     return {
       product,
       quantity,

@@ -39,9 +39,7 @@ public class ProductController {
      * @return
      */
     @GetMapping("/{id}")
-    public Result<Product> getById(
-            @PathVariable Long id,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+    public Result<Product> getById(@PathVariable Long id, @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         // 1、调用Service查询商品
         Product product = productService.getById(id);
         // 2、判断如果不是管理员访问，那么记录商品的浏览量，为后续做数据分析使用

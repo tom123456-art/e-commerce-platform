@@ -7,7 +7,7 @@ spring:
     # 数据库账号，优先读取环境变量，本地默认root
     username: ${DB_USERNAME:root}
     # 数据库密码，优先读取环境变量，根据自己的密码来写
-    password: ${DB_PASSWORD:root}
+    password: ${DB_PASSWORD:123456}
     # MySQL8.x专属驱动类全限定名
     driver-class-name: com.mysql.cj.jdbc.Driver
   # SpringBoot3标准Redis配置节点

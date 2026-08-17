@@ -12,7 +12,7 @@ export default defineConfig({
     port: 3001,   // 管理端运行在 3001 端口（与用户端 3000 错开，可同时启动）
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:9090',
         changeOrigin: true,
         secure: true
       }

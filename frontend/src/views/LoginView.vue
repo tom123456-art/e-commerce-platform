@@ -66,7 +66,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import http from '../utils/http'
 import { clearAuth, isAdmin, isMerchant, saveAuth } from '../utils/auth'
-// import { buildShopUrl, openAdminWindow, openMerchantWindow } from '../utils/appLinks'
+import { buildShopUrl, openAdminWindow, openMerchantWindow } from '../utils/appLinks'
 
 export default {
   name: 'LoginView',

@@ -64,7 +64,7 @@
 
     <select id="selectByCategoryId" resultMap="BaseResultMap">
         select
-            <include refid="Base_Column_List"></include>
+        <include refid="Base_Column_List"></include>
         from product
         where category_id = #{categoryId}
     </select>
@@ -76,7 +76,7 @@
     -->
     <select id="selectPage" resultMap="BaseResultMap">
         select
-            <include refid="Base_Column_List"/>
+        <include refid="Base_Column_List"/>
         from product
         /* 只查询上架的商品 */
         <where>
@@ -188,6 +188,6 @@
         update product
         set stock = stock - #{quantity}, update_time = now()
         where id = #{id}
-        and status = 1 and stock >= #{quantity}
+          and status = 1 and stock >= #{quantity}
     </update>
 </mapper>

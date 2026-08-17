@@ -5,13 +5,22 @@ import com.example.ecommerce.common.Result;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.security.CustomUserDetails;
 import com.example.ecommerce.service.ProductMetricService;
 import com.example.ecommerce.service.ProductService;
+import com.example.ecommerce.utils.ExcelUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.poi.hssf.record.MulBlankRecord;
+import org.springframework.beans.factory.config.CustomEditorConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品管理控制器，处理商品的CRUD、查询、导入导出
@@ -33,24 +42,43 @@ public class ProductController {
 
     /**
      * 根据id获取商品
-     *
-     * @param id             商品id，@PathVariable：从URL路径中提取{id}变量，自动转换为Long
-     * @param userId         用户ID
      * @return
      */
+//    @GetMapping("/{id}")
+//    public Result<Product> getById(
+//            @PathVariable Long id,
+//            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+//        // 1、调用Service查询商品
+//        Product product = productService.getById(id);
+//        // 2、判断如果不是管理员访问，那么记录商品的浏览量，为后续做数据分析使用
+//        if (product != null) {
+//            productMetricService.recordProductView(
+//                    id,
+//                    userId,
+//                    "DETAIL"
+//            );
+//        }
+//        return Result.success(product);
+//    }
+
     @GetMapping("/{id}")
-    public Result<Product> getById(@PathVariable Long id, @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-        // 1、调用Service查询商品
+    public Result<Product> getById(@PathVariable Long id, Authentication authentication){
         Product product = productService.getById(id);
-        // 2、判断如果不是管理员访问，那么记录商品的浏览量，为后续做数据分析使用
-        if (product != null) {
+        if (product != null && !isAdmin(authentication)){
             productMetricService.recordProductView(
-                    id,
-                    userId,
-                    "DETAIL"
+                    id, resolveUserId(authentication), "DETAIL"
             );
         }
         return Result.success(product);
+    }
+
+    private boolean isAdmin(Authentication auth){
+        return auth != null && auth.getPrincipal() instanceof CustomUserDetails &&
+                ((CustomUserDetails) auth.getPrincipal()).isAdmin();
+    }
+    private Long resolveUserId(Authentication auth){
+        return auth != null && auth.getPrincipal() instanceof CustomUserDetails ?
+                ((CustomUserDetails) auth.getPrincipal()).getId() : null;
     }
 
     /**
@@ -108,6 +136,47 @@ public class ProductController {
     public Result<List<ProductShowcaseResponse>> getHotProducts(
             @RequestParam(defaultValue = "6") Integer limit){
         return Result.success(productService.getHotProducts(limit == null ? 6: limit));
+    }
+
+    /**
+     * 获取推荐商品
+     * @RequestParam 从查询字符串中提取参数，defaultValue表示默认值
+     * @return
+     */
+    @GetMapping("/recommended")
+    public Result<List<ProductShowcaseResponse>> getRecommendedProducts(
+            @RequestParam(defaultValue = "6") Integer limit,
+            Authentication authentication){
+        Long userId = (authentication != null &&
+                authentication.getPrincipal() instanceof CustomUserDetails) ?
+                ((CustomUserDetails) authentication.getPrincipal()).getId() : null;
+        return Result.success(productService.getRecommendedProducts(
+                userId, limit == null ? 6 : limit)
+        );
+    }
+
+    /**
+     * 获取商品分类
+     * @return
+     */
+    @GetMapping("/category/{categoryId}")
+    public Result<List<Product>> getByCategoryId(@PathVariable Integer categoryId){
+        return Result.success(productService.getByCategoryId(categoryId));
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<Map<String, Object>> importProducts(
+            @RequestParam("file")MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty())
+            throw new IllegalArgumentException("文件不能为空");
+        if (file.getSize() > 5 * 1024 * 1024)
+            throw new IllegalArgumentException("文件大小不能超过5MB");
+        List<Product> products = ExcelUtil.parseProducts(file.getInputStream());
+        int i = productService.importProducts(products);
+        Map<String,Object> result = new LinkedHashMap<>();
+        result.put("fileName", file.getOriginalFilename());
+        result.put("importCount", i);
+        return Result.success(result);
     }
 
 }

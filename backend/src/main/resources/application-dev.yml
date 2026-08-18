@@ -21,11 +21,11 @@ spring:
       chat: ${SPRING_AI_CHAT_MODEL:openai}
     openai:
       # 大模型代理接口地址，环境变量优先，默认第三方AI中转地址
-      base-url: ${OPENAI_BASE_URL:https://apihub.agnes-ai.com}
+      base-url: ${OPENAI_BASE_URL:https://api.agnes-ai.com}
       chat:
         options:
-          # 对话使用的大模型名称，无环境变量默认agnes-2.0-flash轻量模型
-          model: ${OPENAI_MODEL:agnes-2.0-flash}
+          # 对话使用的大模型名称，无环境变量默认agnes-2.5-flash轻量模型
+          model: ${OPENAI_MODEL:agnes-2.5-flash}
 
   # MySQL数据库连接配置
   datasource:
@@ -90,10 +90,10 @@ ecommerce:
     token-hmac-secret: ${TOKEN_HMAC_SECRET:dev-only-hmac-secret-key-at-least-32-chars-long}
   # 业务层RabbitMQ开关配置
   rabbit:
-    # 消息队列总开关，false 禁用（后续需要时改为 true）
-    enabled: false
-    # 是否开启消息消费者监听
-    listener-enabled: false
+    # 消息队列总开关：true 启用（声明交换机/队列 + 生产者可发消息）
+    enabled: true
+    # 是否开启消息消费者监听：true 启用（OrderEventListener 开始消费）
+    listener-enabled: true
   # 支付业务配置
   payment:
     alipay:

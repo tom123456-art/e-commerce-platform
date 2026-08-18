@@ -11,7 +11,9 @@
         <p class="page-subtitle">查看所有订单，按状态筛选与导出。</p>
       </div>
       <!-- 导出订单 Excel：直接访问 /api/excel/exportOrders 触发文件下载 -->
-      <a class="btn btn-secondary" href="/api/excel/exportOrders" target="_blank">导出 Excel</a>
+      <button class="btn btn-secondary" @click="exportOrders">
+        导出 Excel
+      </button>
     </div>
 
     <p v-if="error" class="state error">{{ error }}</p>
@@ -73,6 +75,24 @@ export default {
     const getStatusText = (s) => ({ 0: '待支付', 1: '已支付', 2: '已完成', 3: '已取消' }[s] || '未知')
     // 状态码 → CSS 类名
     const getStatusClass = (s) => ({ 0: 'pending', 1: 'paid', 2: 'completed', 3: 'cancelled' }[s] || '')
+    //用http.get发生请求，拦截器会自动带token
+    const exportOrders = async () => {
+      try{
+        const blob = await http.get('/excel/exportOrders', { 
+          responseType: 'blob' 
+        })
+        const url = URL.createObjectURL(new Blob([blob]))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'orders.xlsx'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } catch (err) {
+        error.value = err.message || '导出订单失败'
+      }
+    }
 
     /**
      * 加载订单列表
@@ -90,7 +110,7 @@ export default {
       }
     })
 
-    return { loading, error, orders, getStatusText, getStatusClass }
+    return { loading, error, orders, getStatusText, getStatusClass, exportOrders }
   }
 }
 </script>

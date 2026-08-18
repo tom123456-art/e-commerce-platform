@@ -124,7 +124,7 @@ export default {
           responseType: 'text'
         })
         // 安全检查：确保响应数据是字符串类型
-        dashboardHtml.value = typeof response.data === 'string' ? response.data : ''
+        dashboardHtml.value = typeof response === 'string' ? response : ''
       } catch (err) {
         // 错误信息提取：优先使用后端返回的错误信息，兜底显示通用提示
         error.value = err.message || '获取 PyEcharts 看板失败'

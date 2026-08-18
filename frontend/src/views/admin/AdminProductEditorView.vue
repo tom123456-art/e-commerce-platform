@@ -684,7 +684,7 @@ export default {
         const response = await http.get('/excel/productImportTemplate', {
           responseType: 'blob'
         })
-        const blob = new Blob([response.data], {
+        const blob = new Blob([response], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
         // 创建临时下载URL

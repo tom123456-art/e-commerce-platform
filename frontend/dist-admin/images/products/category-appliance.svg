@@ -1,0 +1,10 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#F4F9F9"/>
+  <rect x="112" y="110" width="196" height="242" rx="30" fill="#20C6C8"/>
+  <circle cx="210" cy="184" r="54" fill="#DFFDFC"/>
+  <circle cx="210" cy="184" r="24" fill="#20C6C8"/>
+  <rect x="360" y="130" width="180" height="212" rx="28" fill="#4F7CFF"/>
+  <rect x="388" y="164" width="124" height="122" rx="16" fill="#E4ECFF"/>
+  <rect x="414" y="302" width="72" height="14" rx="7" fill="#E4ECFF"/>
+  <text x="110" y="428" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">智能家电</text>
+</svg>

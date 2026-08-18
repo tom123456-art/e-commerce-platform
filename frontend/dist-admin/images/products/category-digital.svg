@@ -1,0 +1,9 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#EEF4FF"/>
+  <rect x="120" y="74" width="188" height="332" rx="28" fill="#4F7CFF"/>
+  <rect x="138" y="102" width="152" height="248" rx="18" fill="#DDE7FF"/>
+  <circle cx="214" cy="377" r="14" fill="#DDE7FF"/>
+  <rect x="348" y="110" width="176" height="110" rx="22" fill="#20C6C8"/>
+  <rect x="348" y="248" width="126" height="100" rx="18" fill="#132238" fill-opacity="0.88"/>
+  <text x="118" y="444" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">手机数码</text>
+</svg>

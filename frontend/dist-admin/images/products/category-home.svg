@@ -1,0 +1,9 @@
+<svg width="640" height="480" viewBox="0 0 640 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="480" rx="36" fill="#FFF8F2"/>
+  <rect x="110" y="220" width="182" height="108" rx="28" fill="#FFB26B"/>
+  <rect x="110" y="186" width="182" height="48" rx="24" fill="#F29452"/>
+  <rect x="334" y="170" width="196" height="170" rx="26" fill="#20C6C8"/>
+  <rect x="362" y="198" width="140" height="114" rx="18" fill="#E0FFFD"/>
+  <circle cx="186" cy="174" r="38" fill="#FFE2C2"/>
+  <text x="110" y="430" fill="#132238" font-family="Arial, sans-serif" font-size="38" font-weight="700">居家生活</text>
+</svg>

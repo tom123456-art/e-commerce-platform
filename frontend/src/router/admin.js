@@ -70,6 +70,11 @@ const routes = [
         name: 'admin-orders',
         component: () => import('../views/admin/AdminOrdersView.vue'),
         meta: { requiresAuth: true, requiresAdmin: true }
+      },{
+        path: 'showcase-strategy',
+        name: 'ShowcaseStrategy',
+        component: () => import('../views/admin/AdminShowcaseStrategyView.vue'),
+        meta: { title: '推荐策略' }
       }
     ]
   },

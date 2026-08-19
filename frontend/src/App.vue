@@ -16,6 +16,15 @@
               <router-link to="/orders" class="nav-link">
                 我的订单
               </router-link>
+              <router-link to="/ai-chat" class="nav-link">
+                AI客服
+              </router-link>
+              <router-link to="/ai-search" class="nav-link">
+                AI搜索
+              </router-link>
+              <router-link to="/ai-recommend" class="nav-link">
+                AI推荐
+              </router-link>
               <span class="nav-user">欢迎，{{ username }}</span>
               <button class="nav-btn" @click="logout">退出</button>
             </template>

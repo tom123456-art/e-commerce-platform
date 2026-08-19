@@ -38,13 +38,26 @@ const routes = [
         name: 'Product',
         component: ()=> import('../views/ProductDetailView.vue')
     },
-    // // AI功能
-    // {
-    //     path: '/ai-chat',
-    //     name: 'AIChat',
-    //     component: ()=> import('../views/AIChatView.vue'),
-    //     meta: { requiresAuth: true } // 需要登录权限
-    // },
+    // AI功能
+    {
+        path: '/ai-chat',
+        name: 'AIChat',
+        component: ()=> import('../views/AIChatView.vue'),
+        meta: { requiresAuth: true } // 需要登录权限
+    },
+    {
+        path: '/ai-search',
+        name: 'ai-search',
+        component: () => import('../views/AiSearchView.vue'),
+        meta: { requiresAuth: true }
+    },
+
+    {
+        path: '/ai-recommend',
+        name: 'ai-recommend',
+        component: () => import('../views/AiRecommendView.vue'),
+        meta: { requiresAuth: true }
+    },
     {
         path: '/cart',
         name: 'Cart',

@@ -21,7 +21,7 @@ export default defineConfig({
     // 再由 Vite 转发给后端 8080，绕过了浏览器的跨域限制。
     proxy: {
       '/api': {                       // 所有以 /api 开头的请求都会被代理
-        target: 'http://localhost:9090', // 转发的目标地址（后端服务）
+        target: 'http://localhost:8080', // 转发的目标地址（后端服务）
         changeOrigin: true,           // 把请求头里的 Origin 改成目标地址，避免后端校验来源失败
         secure: true                  // 校验 HTTPS 证书（目标是 http 时此项影响不大）
       }

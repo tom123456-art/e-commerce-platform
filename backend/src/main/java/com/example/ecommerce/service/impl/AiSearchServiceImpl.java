@@ -1,6 +1,9 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.common.BusinessException;
+import com.example.ecommerce.common.Result;
 import com.example.ecommerce.config.AiProperties;
+import com.example.ecommerce.dto.AiRecommendResponse;
 import com.example.ecommerce.dto.AiSearchRequest;
 import com.example.ecommerce.dto.AiSearchResponse;
 import com.example.ecommerce.dto.AiSearchResponse.AiSearchProduct;
@@ -74,7 +77,16 @@ public class AiSearchServiceImpl implements AiSearchService {
             // 如果ChatClient不存在，直接使用模板提供搜素结果
             results = doKeywordSearch(query);
         }
-        return null;
+        // 降级、抛异常
+        if (!aiProperties.isTemplateFallback() && fallback)
+            throw new BusinessException(Result.ERROR_CODE," 当前未启动AI推荐，请先配置模型再试");
+        // 封装响应
+        AiSearchResponse response = new AiSearchResponse();
+        response.setProducts(results); // 设置推荐结果
+        response.setQuery(query); // 设置原始的查询
+        response.setFallback(fallback); // 标记是否降级
+        response.setProvider(provider); // 设置提供者名称
+        return response;
     }
 
     /**
@@ -215,7 +227,7 @@ public class AiSearchServiceImpl implements AiSearchService {
             Long id = null;
             String reason = null;
             // 解析item
-            for (String pair : item.split(",")){
+            for (String pair : item.split("，")){
                 // 解析key-value，limit的意思是最多分割成2部分
                 String[] keyValue = pair.split(":", 2);
                 if (keyValue.length != 2) continue;
@@ -239,7 +251,6 @@ public class AiSearchServiceImpl implements AiSearchService {
                         .findFirst().orElse(null);
                 if (product != null)
                     results.add(toSearchProduct(product, reason));
-
             }
         }
         return results;

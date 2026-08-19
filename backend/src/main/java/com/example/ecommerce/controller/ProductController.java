@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.common.PagedResponse;
 import com.example.ecommerce.common.Result;
+import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
@@ -177,6 +178,12 @@ public class ProductController {
         result.put("fileName", file.getOriginalFilename());
         result.put("importCount", i);
         return Result.success(result);
+    }
+
+    @GetMapping("/{id}/detail")
+    public Result<ProductDetailResponse> getDetailById(@PathVariable Long id, Authentication authentication) {
+        ProductDetailResponse detail = productService.getDetailById(id);
+        return Result.success(detail);
     }
 
 }

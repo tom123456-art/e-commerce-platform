@@ -2,6 +2,7 @@ package com.example.ecommerce.service;
 
 
 import com.example.ecommerce.common.PagedResponse;
+import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
@@ -47,5 +48,10 @@ public interface ProductService {
 
     /* 批量导入商品，返回成功导入的记录数 */
     int importProducts(List<Product> products);
+
+    /**
+     * 查询商品详情 DTO
+     */
+    ProductDetailResponse getDetailById(Long id);
 
 }

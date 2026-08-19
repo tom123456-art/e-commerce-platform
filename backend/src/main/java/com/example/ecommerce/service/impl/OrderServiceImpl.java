@@ -1,5 +1,6 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.common.StockNotEnoughException;
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
 import com.example.ecommerce.dto.OrderDetailResponse;
@@ -211,7 +212,7 @@ public class OrderServiceImpl implements OrderService {
         // 扣减库存
         int i = productMapper.decreaseStock(orderItem.getProductId(), orderItem.getQuantity());
         if (i != 1){
-            throw new BusinessException(Result.CONFLICT_CODE, "库存不足");
+            throw new StockNotEnoughException();
         }
         return product;
     }

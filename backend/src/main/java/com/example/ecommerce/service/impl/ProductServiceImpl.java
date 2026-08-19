@@ -3,10 +3,12 @@ package com.example.ecommerce.service.impl;
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.PagedResponse;
 import com.example.ecommerce.common.Result;
+import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.mapper.ProductMapper;
+import com.example.ecommerce.mapper.ReviewMapper;
 import com.example.ecommerce.service.ProductService;
 import com.example.ecommerce.utils.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,13 +46,15 @@ public class ProductServiceImpl implements ProductService {
 
 
     private final ProductMapper productMapper;
+    private final ReviewMapper reviewMapper;
     private final RedisUtil redisUtil;
     /* JSON工具 */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /* 构造器注入 */
-    public ProductServiceImpl(ProductMapper productMapper, RedisUtil redisUtil) {
+    public ProductServiceImpl(ProductMapper productMapper, ReviewMapper reviewMapper, RedisUtil redisUtil) {
         this.productMapper = productMapper;
+        this.reviewMapper = reviewMapper;
         this.redisUtil = redisUtil;
     }
 
@@ -334,4 +338,30 @@ public class ProductServiceImpl implements ProductService {
         evictProductCaches();
         return products.size();
     }
+
+    /**
+     * 查询商品详情 DTO
+     *
+     * @param id
+     */
+    @Override
+    public ProductDetailResponse getDetailById(Long id) {
+        Product product = getById(id);
+        if (product == null) {
+            throw new BusinessException(Result.NOT_FOUND_CODE, "商品不存在");
+        }
+
+        Integer commentCount = reviewMapper.countByProductId(id);
+        Double averageRating = reviewMapper.avgRatingByProductId(id);
+
+        return new ProductDetailResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                commentCount,
+                averageRating
+        );
+    }
+
 }

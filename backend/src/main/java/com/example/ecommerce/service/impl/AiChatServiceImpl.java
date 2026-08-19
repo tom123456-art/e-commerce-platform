@@ -1,7 +1,5 @@
 package com.example.ecommerce.service.impl;
 
-import com.example.ecommerce.common.BusinessException;
-import com.example.ecommerce.common.Result;
 import com.example.ecommerce.config.AiProperties;
 import com.example.ecommerce.dto.AiChatRequest;
 import com.example.ecommerce.dto.AiChatResponse;
@@ -21,49 +19,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
-public class AiChatServiceImpl implements AiChatService {
+public class AiChatServiceImpl extends AbstractAiService implements AiChatService {
 
     private static final Logger log = LoggerFactory.getLogger(AiChatServiceImpl.class);
 
     // 降级模式下提供的provider/model标识
-    private static final String TEMPLATE_PROVIDER = "template-mock";
     private static final String TEMPLATE_MODEL = "chat-template";
 
     // 会话历史窗口大小，保留最近10轮
     private static final int SESSION_HISTORY_SIZE = 10;
 
-    // 商城分类映射，通过分类id映射到分类的中文名
-    private static final Map<Integer, String> CATEGORY_LABELS =
-            Collections.unmodifiableMap(Map.of(
-                    1,"手机数码",2,"电脑办公",3,"智能家电",
-                    4,"家居生活",5,"运动户外",6,"影音娱乐"
-            ));
-
-    // Map,HashMap,ConcurrentHashMap,TreeMap,LinkedHashMap的区别
-    // HashMap: 基于哈希表实现，允许null键和null值，无序
-    // ConcurrentHashMap: 基于哈希表实现，允许null键和null值，线程安全
-    // TreeMap: 基于红黑树实现，不允许null键，有序
-    // LinkedHashMap: 基于哈希表和链表实现，允许null键和null值，插入顺序
     // 会话历史缓存，key为会话id，value为会话历史记录列表
     private final ConcurrentHashMap<String, List<String[]>> sessions
             = new ConcurrentHashMap<>();
-
-    private final ProductService productService;
-    private final AiProperties aiProperties;
-    private final ChatClient chatClient;
-    private final Environment env;
 
     public AiChatServiceImpl(
             ProductService productService,
             AiProperties aiProperties,
             ObjectProvider<ChatClient.Builder> chatClientProvider,
             Environment env) {
-        this.productService = productService;
-        this.aiProperties = aiProperties;
-        // 如果Bean不存在的话，返回null
-        ChatClient.Builder builder = chatClientProvider.getIfAvailable();
-        this.chatClient = builder == null ? null : builder.build();
-        this.env = env;
+        super(productService, aiProperties, chatClientProvider, env);
     }
 
     /**
@@ -106,9 +81,8 @@ public class AiChatServiceImpl implements AiChatService {
                 log.warn("AI回复失败，将使用模板回复", e);
             }
         }
-        if (!aiProperties.isTemplateFallback() && fallback){
-            throw new BusinessException(Result.ERROR_CODE, "当前未启用SpringAI,请先配置模型后再试");
-        }
+        // 降级、抛异常
+        assertNotFallback(fallback, "当前未启用SpringAI,请先配置模型后再试");
         // 保存本轮对话到历史记录
         saveHistory(sessionId, message, reply);
         // 封装响应
@@ -149,7 +123,7 @@ public class AiChatServiceImpl implements AiChatService {
      * @return
      */
     private String buildSystemPrompt(){
-        List<Product> products = productService.getAll();
+        List<Product> products = getAllProducts();
         String productList = products.stream().limit(20).map(
                 product -> String.format(
                         Locale.ROOT, "%s(%s,%.2f元,库存%d)",
@@ -174,7 +148,7 @@ public class AiChatServiceImpl implements AiChatService {
     private String buildTemplateReply(String message){
         String lower = message.toLowerCase();
         if (lower.contains("推荐") || lower.contains("有什么") || lower.contains("什么好")){
-            List<Product> products = productService.getAll();
+            List<Product> products = getAllProducts();
             if (!products.isEmpty()){
                 String items = products.stream().limit(3)
                         .map(product -> product.getName()

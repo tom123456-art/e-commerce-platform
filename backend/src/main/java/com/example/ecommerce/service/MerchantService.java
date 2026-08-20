@@ -1,5 +1,6 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.dto.MerchantDashboardResponse;
 import com.example.ecommerce.dto.MerchantRegisterRequest;
 import com.example.ecommerce.dto.ReviewReplyRequest;
 import com.example.ecommerce.dto.StoreRequest;
@@ -25,4 +26,6 @@ public interface MerchantService {
     void replyReviews(Long merchantId, ReviewReplyRequest request);
 
     void hideReviews(Long merchantId, Long reviewId);
+
+    MerchantDashboardResponse getDashboard(Long merchantId);
 }

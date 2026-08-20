@@ -2,6 +2,7 @@ package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
+import com.example.ecommerce.dto.MerchantDashboardResponse;
 import com.example.ecommerce.dto.MerchantRegisterRequest;
 import com.example.ecommerce.dto.ReviewReplyRequest;
 import com.example.ecommerce.dto.StoreRequest;
@@ -141,5 +142,45 @@ public class MerchantServiceImpl implements MerchantService {
         // 软删除
         reviewMapper.updateStatus(reviewId, 0);
         log.info("隐藏评论成功，评论ID：{}, 商家ID：{}", reviewId, merchantId);
+    }
+
+    /**
+     * @param merchantId
+     * @return
+     */
+    @Override
+    public MerchantDashboardResponse getDashboard(Long merchantId) {
+        // 构建商家仪表盘数据
+        MerchantDashboardResponse response = new MerchantDashboardResponse();
+        // 获取全平台的所有商品
+        List<Product> products = productMapper.selectAll();
+        // 统计当前商家的所有商品
+        long productCounts = products.stream().filter(
+                p -> p.getMerchantId().equals(merchantId)
+        ).count();
+        // 统计当前商家的所有在售的商品
+        long activeProductCounts = products.stream().filter(
+                p -> merchantId.equals(p.getMerchantId()) && p.getStatus() == 1
+        ).count();
+        // 查询商家的所有评论
+        List<Review> reviews = reviewMapper.selectByMerchantProducts(merchantId);
+        // 评论总数
+        long totalReviews = reviews.size();
+        // 待回复
+        long pendingReplies = reviews.stream().filter(
+                r -> r.getReply() == null || r.getReply().isEmpty()
+        ).count();
+        // 评分
+        double avgRating = reviews.isEmpty() ? 0 : reviews.stream().mapToInt(
+                Review::getRating
+        ).average().orElse(0);
+        response.setTotalProducts(productCounts);
+        response.setActiveProducts(activeProductCounts);
+        response.setTotalReviews(totalReviews);
+        response.setPendingReplies(pendingReplies);
+        response.setAverageRating(Math.round(avgRating * 10.0) / 10.0);  // 四舍五入到小数点后一位
+        response.setTotalOrders(0);
+        response.setTotalRevenue(0.0);
+        return response;
     }
 }

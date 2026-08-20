@@ -139,6 +139,17 @@ public class MerchantController {
         return Result.success();
     }
 
+    /**
+     * 获取当前商家的店铺仪表盘数据
+     * GET /api/merchant/dashboard
+     * @param token
+     * @return
+     */
+    @GetMapping("/dashboard")
+    public Result<MerchantDashboardResponse> getDashboard(@RequestHeader("Authorization") String token){
+        Long merchantId = getMerchantId(token);
+        return Result.success(merchantService.getDashboard(merchantId));
+    }
 
     // 私有服务方法
 

@@ -89,15 +89,15 @@ async function bootstrap() {
   let activeRouter
 
   // ===== 商户端（Merchant）代码暂未实现，后续补充时取消下面注释 =====
-  // if (isMerchantApp) {
-  //   const [{ default: MerchantApp }, { default: merchantRouter }] = await Promise.all([
-  //     import('./MerchantApp.vue'),
-  //     import('./router/merchant')
-  //   ])
-  //   rootComponent = MerchantApp
-  //   activeRouter = merchantRouter
-  // } else if (isAdminApp) {
-  if (isAdminApp) {
+  if (isMerchantApp) {
+    const [{ default: MerchantApp }, { default: merchantRouter }] = await Promise.all([
+      import('./MerchantApp.vue'),
+      import('./router/merchant')
+    ])
+    rootComponent = MerchantApp
+    activeRouter = merchantRouter
+  } else if (isAdminApp) {
+  // if (isAdminApp) {
     const [{ default: AdminApp }, { default: adminRouter }] = await Promise.all([
       import('./AdminApp.vue'),
       import('./router/admin')

@@ -1,9 +1,8 @@
 package com.example.ecommerce.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import lombok.Data;
 
 /**
  * 商品展示策略配置属性 —— 通过 application.yml 配置推荐算法权重。
@@ -25,16 +24,24 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "ecommerce.showcase")
 public class ShowcaseProperties {
 
-    /** 热销商品权重配置 */
+    /**
+     * 热销商品权重配置
+     */
     private HotWeights hot = new HotWeights();
 
-    /** 匿名用户（未登录）展示权重配置 */
+    /**
+     * 匿名用户（未登录）展示权重配置
+     */
     private AnonymousWeights anonymous = new AnonymousWeights();
 
-    /** 个性化推荐权重配置 */
+    /**
+     * 个性化推荐权重配置
+     */
     private PersonalizedWeights personalized = new PersonalizedWeights();
 
-    /** 热销信号权重配置 */
+    /**
+     * 热销信号权重配置
+     */
     private HotSignalWeights hotSignal = new HotSignalWeights();
 
     /**
@@ -50,15 +57,25 @@ public class ShowcaseProperties {
      */
     @Data
     public static class HotWeights {
-        /** 销量权重（默认 55%）—— 销量是热度最核心指标 */
+        /**
+         * 销量权重（默认 55%）—— 销量是热度最核心指标
+         */
         private double sales = 0.55D;
-        /** 收入权重（默认 15%）—— 高客单价商品热度加成 */
+        /**
+         * 收入权重（默认 15%）—— 高客单价商品热度加成
+         */
         private double revenue = 0.15D;
-        /** 订单数权重（默认 15%）—— 与销量类似但去除了数量因素 */
+        /**
+         * 订单数权重（默认 15%）—— 与销量类似但去除了数量因素
+         */
         private double orders = 0.15D;
-        /** 新鲜度权重（默认 10%）—— 新上架商品热度加成 */
+        /**
+         * 新鲜度权重（默认 10%）—— 新上架商品热度加成
+         */
         private double freshness = 0.10D;
-        /** 库存权重（默认 5%）—— 库存充足商品优先展示 */
+        /**
+         * 库存权重（默认 5%）—— 库存充足商品优先展示
+         */
         private double inventory = 0.05D;
     }
 

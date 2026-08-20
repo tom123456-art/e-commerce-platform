@@ -15,27 +15,43 @@ public enum OrderStatus {
     RECEIVED(2, "已收货"),
     DELETED(-1, "已删除");
 
+    private static final Map<Integer, OrderStatus> MAP = new HashMap<>();
+    /**
+     * [FIX-5] 状态机（普通用户/默认）：允许的流转集合。
+     * - 待支付(0) -> 已支付(1)
+     * - 已支付(1) -> 已收货(2)
+     * 其余流转一律禁止。
+     */
+    private static final Map<OrderStatus, Set<OrderStatus>> TRANSITIONS = new HashMap<>();
+    /**
+     * [FIX-E] 状态机（管理员）：在普通流转基础上，额外允许"取消/退款"。
+     * - 已支付(1) -> 待支付(0)（管理员取消订单或退款）
+     * 其余终态（已收货）不再允许流转。
+     */
+    private static final Map<OrderStatus, Set<OrderStatus>> TRANSITIONS_ADMIN = new HashMap<>();
+
+    static {
+        for (OrderStatus s : values()) {
+            MAP.put(s.code, s);
+        }
+    }
+
+    static {
+        TRANSITIONS.put(PENDING_PAYMENT, EnumSet.of(PAID));
+        TRANSITIONS.put(PAID, EnumSet.of(RECEIVED));
+    }
+
+    static {
+        TRANSITIONS_ADMIN.put(PENDING_PAYMENT, EnumSet.of(PAID));
+        TRANSITIONS_ADMIN.put(PAID, EnumSet.of(RECEIVED, PENDING_PAYMENT));
+    }
+
     private final int code;
     private final String desc;
 
     OrderStatus(int code, String desc) {
         this.code = code;
         this.desc = desc;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    private static final Map<Integer, OrderStatus> MAP = new HashMap<>();
-    static {
-        for (OrderStatus s : values()) {
-            MAP.put(s.code, s);
-        }
     }
 
     public static OrderStatus fromCode(Integer code) {
@@ -46,33 +62,6 @@ public enum OrderStatus {
     }
 
     /**
-     * [FIX-5] 状态机（普通用户/默认）：允许的流转集合。
-     * - 待支付(0) -> 已支付(1)
-     * - 已支付(1) -> 已收货(2)
-     * 其余流转一律禁止。
-     */
-    private static final Map<OrderStatus, Set<OrderStatus>> TRANSITIONS = new HashMap<>();
-    static {
-        TRANSITIONS.put(PENDING_PAYMENT, EnumSet.of(PAID));
-        TRANSITIONS.put(PAID, EnumSet.of(RECEIVED));
-    }
-
-    /**
-     * [FIX-E] 状态机（管理员）：在普通流转基础上，额外允许"取消/退款"。
-     * - 已支付(1) -> 待支付(0)（管理员取消订单或退款）
-     * 其余终态（已收货）不再允许流转。
-     */
-    private static final Map<OrderStatus, Set<OrderStatus>> TRANSITIONS_ADMIN = new HashMap<>();
-    static {
-        TRANSITIONS_ADMIN.put(PENDING_PAYMENT, EnumSet.of(PAID));
-        TRANSITIONS_ADMIN.put(PAID, EnumSet.of(RECEIVED, PENDING_PAYMENT));
-    }
-
-    /**
-     * [FIX-5] 校验从 fromCode 变更为 toCode 是否合法。
-     * 允许流转到自身（状态不变）；非法流转抛出 BusinessException(CONFLICT)。
-     */
-    /**
      * [FIX-5] 普通用户的严格状态机校验（等价于 isAdmin=false）。
      */
     public static void validateTransition(Integer fromCode, Integer toCode) {
@@ -81,6 +70,7 @@ public enum OrderStatus {
 
     /**
      * [FIX-E] 状态机校验，支持管理员宽松流转。
+     *
      * @param isAdmin 是否为管理员（管理员允许额外的取消/退款流转）
      */
     public static void validateTransition(Integer fromCode, Integer toCode, boolean isAdmin) {
@@ -100,5 +90,18 @@ public enum OrderStatus {
             throw new BusinessException(Result.CONFLICT_CODE,
                     "订单状态不允许从【" + from.desc + "】变更为【" + to.desc + "】");
         }
+    }
+
+    /**
+     * [FIX-5] 校验从 fromCode 变更为 toCode 是否合法。
+     * 允许流转到自身（状态不变）；非法流转抛出 BusinessException(CONFLICT)。
+     */
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 }

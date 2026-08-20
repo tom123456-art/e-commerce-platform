@@ -31,6 +31,7 @@ public interface ProductMetricService {
 
     /**
      * 记录商品浏览事件。
+     *
      * @param productId 商品 ID
      * @param userId    用户 ID（可为 null，匿名用户也记录）
      * @param source    浏览来源（detail/search/recommend）
@@ -39,6 +40,7 @@ public interface ProductMetricService {
 
     /**
      * 记录加购事件。
+     *
      * @param productId 商品 ID
      * @param quantity  加购数量
      */
@@ -46,6 +48,7 @@ public interface ProductMetricService {
 
     /**
      * 记录支付成功事件（遍历订单项，为每个商品记录支付指标）。
+     *
      * @param order      订单实体
      * @param orderItems 订单明细列表
      */
@@ -53,6 +56,7 @@ public interface ProductMetricService {
 
     /**
      * 汇总指定时间窗口的指标（ShowcaseStrategy 核心数据源）。
+     *
      * @param days 窗口天数（1-180）
      * @return 指标汇总（含转化率）
      */
@@ -60,6 +64,7 @@ public interface ProductMetricService {
 
     /**
      * 获取最近 N 天的每日指标明细（趋势图用）。
+     *
      * @param limit 天数限制（1-60）
      * @return 每日指标列表（按日期倒序）
      */

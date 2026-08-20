@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 
 /**
  * 自定义用户详情服务，连接数据库与 Spring Security 认证体系。
- *
+ * <p>
  * 实现 UserDetailsService：根据用户名加载用户信息。
  * 实现 UserDetailsPasswordService：支持密码自动升级。
- *
+ * <p>
  * 📋 复制粘贴文件：从 02-code/11-Security/ 复制到项目中 security/ 目录。
  */
 @Service

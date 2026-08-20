@@ -9,7 +9,6 @@ import com.example.ecommerce.security.SecurityUtils;
 import com.example.ecommerce.service.OrderService;
 import com.example.ecommerce.service.PaymentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.tomcat.util.bcel.classfile.ConstantUtf8;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -41,18 +40,19 @@ public class PaymentController {
      * 创建支付订单
      * 前端调用之后会拿到paymentUrl,可以通过window.location.href跳转到支付页面
      * 返回LinkedHashMap
-     * @param orderNo 订单编号
-     * @param amount 支付金额 可以为空
-     * @param description 支付描述 可以为空
+     *
+     * @param orderNo        订单编号
+     * @param amount         支付金额 可以为空
+     * @param description    支付描述 可以为空
      * @param authentication 认证信息
      * @return 支付订单信息
      */
     @PostMapping("/create")
-    public Result<Map<String,String>> createPayment(
+    public Result<Map<String, String>> createPayment(
             @RequestParam String orderNo,
-            @RequestParam(required = false)BigDecimal amount,
-            @RequestParam(required = false)String description,
-            Authentication authentication){
+            @RequestParam(required = false) BigDecimal amount,
+            @RequestParam(required = false) String description,
+            Authentication authentication) {
         // 根据订单编号查询订单是否存在
         Order order = orderService.getByOrderNo(orderNo);
         if (order == null)
@@ -69,18 +69,18 @@ public class PaymentController {
     public String mockSuccess(
             @RequestParam String orderNo,
             @RequestParam(required = false) String amount,
-            @RequestParam(required = false) String subject){
+            @RequestParam(required = false) String subject) {
         // Mock 支付开关守卫：未开启时拒绝访问（与测试期望的 403 对应）
         if (!alipayProperties.isMockEnabled()) {
             throw new BusinessException(Result.FORBIDDEN_CODE, "Mock 支付未开启");
         }
-        Map<String,String> params = new LinkedHashMap<>();
+        Map<String, String> params = new LinkedHashMap<>();
         params.put("orderNo", orderNo);
         params.put("status", "SUCCESS");
         if (amount != null) params.put("amount", amount);
         // 模拟回调
         boolean success = paymentService.handleMockCallback(params);
-        if (!success){
+        if (!success) {
             // 跳转失败页
             return loadTemplate("templates/mock-payment-fail.html")
                     .replace("{{orderNo}}", escapeHtml(orderNo));
@@ -96,8 +96,8 @@ public class PaymentController {
     /**
      * 支付宝异步回调（服务端到服务端调用，无需用户登录，已在 SecurityConfig 放行）。
      * 透传原始回调参数给 PaymentService，并按支付宝规范原样返回纯文本 "success"/"failure"：
-     *   - 返回 "success" 告知支付宝处理成功，停止重试；
-     *   - 返回 "failure" 告知支付宝处理失败，支付宝会在 25h 内重试 8 次。
+     * - 返回 "success" 告知支付宝处理成功，停止重试；
+     * - 返回 "failure" 告知支付宝处理失败，支付宝会在 25h 内重试 8 次。
      */
     @PostMapping("/callback")
     public String handleCallback(@RequestParam Map<String, String> params) {
@@ -107,6 +107,7 @@ public class PaymentController {
 
     /**
      * HTML特殊字符的转义
+     *
      * @param value
      * @return
      */
@@ -121,6 +122,7 @@ public class PaymentController {
 
     /**
      * 从classpath加载HTML模板
+     *
      * @param s 模板文件的相对路径
      * @return
      */
@@ -128,7 +130,7 @@ public class PaymentController {
         try {
             // 可以读取项目内的资源目录，例如 templates 目录
             ClassPathResource resource = new ClassPathResource(s);
-            try (InputStream inputStream = resource.getInputStream()){
+            try (InputStream inputStream = resource.getInputStream()) {
                 // 以UTF-8编码读取字节流并转换为字符串
                 return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
             }
@@ -140,6 +142,7 @@ public class PaymentController {
 
     /**
      * 越权检查，用户只能访问自己的订单，管理员可以访问所有订单
+     *
      * @param authentication
      * @param order
      */

@@ -5,14 +5,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -20,9 +20,10 @@ import java.util.stream.Collectors;
 
 /**
  * 全局异常处理器。
+ *
  * @RestControllerAdvice = @ControllerAdvice + @ResponseBody
  * 作用：拦截所有 Controller 中抛出的异常，转换为统一的 Result 格式返回。
- *
+ * <p>
  * 处理流程：
  * Controller 正常返回 → Spring 自动序列化为 JSON
  * Controller 抛出异常 → GlobalExceptionHandler 捕获 → 转换为 Result.failure() → 返回 JSON
@@ -107,7 +108,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Result<Void>> handleException(Exception ex) {
         String errorMessage = ex.getMessage();
         // 检测是否是 XSS 攻击内容
-        if (errorMessage != null && XssUtils.containsXss(errorMessage)) {
+        if (XssUtils.containsXss(errorMessage)) {
             log.warn("[安全告警] 检测到疑似XSS攻击内容");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Result.failure(Result.BAD_REQUEST_CODE, "请求内容包含非法字符"));
@@ -125,13 +126,17 @@ public class GlobalExceptionHandler {
                 .body(Result.failure(Result.ERROR_CODE, "System error, please try again later"));
     }
 
-    /** 将业务状态码转换为 HTTP 状态码 */
+    /**
+     * 将业务状态码转换为 HTTP 状态码
+     */
     private HttpStatus toStatus(int code) {
         HttpStatus status = HttpStatus.resolve(code);
         return status == null ? HttpStatus.BAD_REQUEST : status;
     }
 
-    /** 从参数异常中提取友好的错误信息 */
+    /**
+     * 从参数异常中提取友好的错误信息
+     */
     private String extractMessage(Exception ex) {
         if (ex instanceof MethodArgumentNotValidException exception) {
             return exception.getBindingResult().getFieldErrors().stream()

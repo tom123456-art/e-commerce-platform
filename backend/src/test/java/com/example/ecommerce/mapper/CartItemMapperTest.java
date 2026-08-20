@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -33,7 +32,7 @@ class CartItemMapperTest {
     }
 
     @Test
-    void selectById(){
+    void selectById() {
         cartItemMapper.insert(cartItem);
         CartItem cartItem1 = cartItemMapper.selectById(cartItem.getId());
         CartItem cartItem2 = cartItemMapper.selectByUserAndProduct(1L, 1L);
@@ -41,13 +40,13 @@ class CartItemMapperTest {
     }
 
     @Test
-    void selectByUserId(){
+    void selectByUserId() {
         cartItemMapper.insert(cartItem);
         cartItemMapper.selectCartByUserId(1L).forEach(System.out::println);
     }
 
     @Test
-    void updateQuantity(){
+    void updateQuantity() {
         cartItemMapper.insert(cartItem);
         System.out.println("原购物车中商品的数量：" + cartItem.getQuantity());
         cartItemMapper.updateQuantity(cartItem.getId(), 1L, 5);
@@ -55,10 +54,10 @@ class CartItemMapperTest {
     }
 
     @Test
-    void increateQuantity(){
+    void increateQuantity() {
         cartItemMapper.insert(cartItem);
         System.out.println("原购物车中商品的数量：" + cartItem.getQuantity());
-        cartItemMapper.increaseQuantity(cartItem.getId(),  1L, 10);
+        cartItemMapper.increaseQuantity(cartItem.getId(), 1L, 10);
         System.out.println("增加后的购物车中商品的数量：" + cartItemMapper.selectById(cartItem.getId()).getQuantity());
     }
 }

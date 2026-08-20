@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 自定义用户详情类，实现 Spring Security 的 UserDetails 接口。
  * 将数据库 User 实体转换为 Spring Security 能理解的格式。
- *
+ * <p>
  * 📋 复制粘贴文件：从 02-code/11-Security/ 复制到项目中 security/ 目录。
  */
 public class CustomUserDetails implements UserDetails {
@@ -49,8 +49,8 @@ public class CustomUserDetails implements UserDetails {
             authorities.add(new SimpleGrantedAuthority("ROLE_MERCHANT"));
         }
         return new CustomUserDetails(
-            user.getId(), user.getUsername(), user.getPassword(),
-            user.getStatus(), authorities
+                user.getId(), user.getUsername(), user.getPassword(),
+                user.getStatus(), authorities
         );
     }
 
@@ -59,23 +59,54 @@ public class CustomUserDetails implements UserDetails {
      * 此工厂方法在密码自动升级时使用，避免重复编码。
      */
     public static CustomUserDetails fromUserAndEncodedPassword(String username, String encodedPassword,
-                                                                Collection<? extends GrantedAuthority> authorities) {
+                                                               Collection<? extends GrantedAuthority> authorities) {
         return new CustomUserDetails(null, username, encodedPassword, 1, authorities);
     }
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
+
     public boolean isAdmin() {
         return authorities.stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
+
     public boolean isMerchant() {
         return authorities.stream().anyMatch(a -> "ROLE_MERCHANT".equals(a.getAuthority()));
     }
 
-    @Override public Collection<? extends GrantedAuthority> getAuthorities() { return authorities; }
-    @Override public String getPassword() { return password; }
-    @Override public String getUsername() { return username; }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return status == null || status >= 0; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return status == null || status == 1; }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return status == null || status >= 0;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return status == null || status == 1;
+    }
 }

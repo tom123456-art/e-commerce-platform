@@ -1,6 +1,5 @@
 package com.example.ecommerce.service.impl;
 
-import com.example.ecommerce.common.StockNotEnoughException;
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
 import com.example.ecommerce.dto.OrderDetailResponse;
@@ -120,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         // 三、检查是否存在重复订单号
         // 通过订单号获取订单信息
         Order existing = orderMapper.selectByOrderNo(order.getOrderNo());
-        if (existing != null){
+        if (existing != null) {
             log.warn("订单号{}已存在，返回已有订单详情", order.getOrderNo());
             return getDetailById(existing.getId());
         }
@@ -132,7 +131,7 @@ public class OrderServiceImpl implements OrderService {
         // 设置订单总金额为0
         BigDecimal totalAmount = BigDecimal.ZERO;
         // 遍历订单项
-        for (OrderItem orderItem : safeItems){
+        for (OrderItem orderItem : safeItems) {
             // TODO:校验和扣除库存（原子操作）
             Product product = validateAndDecreaseStock(orderItem);
             // 价格快照
@@ -152,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
         // 六、插入订单表
         orderMapper.insert(order);
         // 七、把生成的orderId回填到每个订单项，再批量插入
-        for (OrderItem item: safeItems){
+        for (OrderItem item : safeItems) {
             item.setOrderId(order.getId());
         }
         orderItemMapper.insertBatch(safeItems);
@@ -164,13 +163,14 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 清理商品相关的Redis缓存，当库存变化以后，旧的缓存失效
+     *
      * @param product
      */
     private void clearProductCache(Product product) {
         try {
             redisUtil.delete("product:" + product.getId());
             redisUtil.delete("products:all");
-            if (product.getCategoryId() != null){
+            if (product.getCategoryId() != null) {
                 redisUtil.delete("product:category:" + product.getCategoryId());
             }
             clearShowcaseCache();
@@ -194,25 +194,26 @@ public class OrderServiceImpl implements OrderService {
      * 校验商品和扣除库存（原子操作），防止超卖的核心逻辑
      * update product set stock = stock - #{qty}
      * where id=#{id} and stock >= #{qty} and status =1
+     *
      * @param orderItem
      */
     private Product validateAndDecreaseStock(OrderItem orderItem) {
         // 判断商品信息是否存在
         if (orderItem.getProductId() == null ||
                 orderItem.getQuantity() == null ||
-                orderItem.getQuantity() <= 0){
+                orderItem.getQuantity() <= 0) {
             throw new BusinessException(Result.BAD_REQUEST_CODE,
                     "商品和商品数量不能为空");
         }
         // 获取商品详细信息
         Product product = productMapper.selectById(orderItem.getProductId());
-        if (product == null || product.getStatus() == null || product.getStatus() != 1){
+        if (product == null || product.getStatus() == null || product.getStatus() != 1) {
             throw new BusinessException(Result.NOT_FOUND_CODE, "商品不存在或已下架");
         }
         // 扣减库存
         int i = productMapper.decreaseStock(orderItem.getProductId(), orderItem.getQuantity());
-        if (i != 1){
-            throw new StockNotEnoughException();
+        if (i != 1) {
+            throw new BusinessException(Result.CONFLICT_CODE, "库存不足");
         }
         return product;
     }

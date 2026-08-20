@@ -50,6 +50,7 @@ public class AiSearchServiceImpl extends AbstractAiService implements AiSearchSe
 
     /**
      * 使用关键词搜素，是AI搜素异常的时候的降级方案
+     *
      * @param query
      * @return
      */
@@ -63,6 +64,7 @@ public class AiSearchServiceImpl extends AbstractAiService implements AiSearchSe
 
     /**
      * 判断商品是否匹配关键词
+     *
      * @param product 商品
      * @param keyword 关键词
      * @return
@@ -85,7 +87,7 @@ public class AiSearchServiceImpl extends AbstractAiService implements AiSearchSe
             return true;
         // 分词匹配
         // 按照空格拆分查询，如果有任意一个词命中则匹配
-        for (String word : keyword.split("\\s+")){
+        for (String word : keyword.split("\\s+")) {
             if (word.length() < 2) continue; // 跳过单字
             if (tokenMatches(product, word))
                 return true;
@@ -93,7 +95,7 @@ public class AiSearchServiceImpl extends AbstractAiService implements AiSearchSe
         return false;
     }
 
-    private List<AiSearchProduct> doAiSearch(String query){
+    private List<AiSearchProduct> doAiSearch(String query) {
         List<Product> products = getAllProducts();
         String productList = buildProductList(products, "、", false);
         String systemPrompt = "你是一个电商搜索助手。根据用户的自然语言查询，从商品列表中找到最匹配的商品。"

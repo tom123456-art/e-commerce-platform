@@ -9,20 +9,17 @@
       - VALUES(view_count) 引用 INSERT 语句中 view_count 的值，实现累加
     -->
     <insert id="upsertDelta" parameterType="com.example.ecommerce.entity.ProductMetricDaily">
-        insert into product_metric_daily (
-            metric_date, product_id, view_count, cart_add_count,
-            paid_order_count, paid_quantity, paid_amount, create_time, update_time
-        ) values (
-            #{metricDate}, #{productId}, #{viewCount}, #{cartAddCount},
-            #{paidOrderCount}, #{paidQuantity}, #{paidAmount}, now(), now()
-        )
-        on duplicate key update
-            view_count = view_count + values(view_count),
-            cart_add_count = cart_add_count + values(cart_add_count),
-            paid_order_count = paid_order_count + values(paid_order_count),
-            paid_quantity = paid_quantity + values(paid_quantity),
-            paid_amount = paid_amount + values(paid_amount),
-            update_time = now()
+        insert into product_metric_daily (metric_date, product_id, view_count, cart_add_count,
+                                          paid_order_count, paid_quantity, paid_amount, create_time, update_time)
+        values (#{metricDate}, #{productId}, #{viewCount}, #{cartAddCount},
+                #{paidOrderCount}, #{paidQuantity}, #{paidAmount}, now(), now()) on duplicate key
+        update
+            view_count = view_count +
+        values (view_count), cart_add_count = cart_add_count +
+        values (cart_add_count), paid_order_count = paid_order_count +
+        values (paid_order_count), paid_quantity = paid_quantity +
+        values (paid_quantity), paid_amount = paid_amount +
+        values (paid_amount), update_time = now()
     </insert>
 
     <!--
@@ -32,12 +29,11 @@
       - resultType 直接映射 DTO：列别名 as viewCount 与 DTO 属性名一致，自动映射
     -->
     <select id="aggregateSummary" resultType="com.example.ecommerce.dto.ShowcaseMetricSummary">
-        select
-            ifnull(sum(view_count), 0) as viewCount,
-            ifnull(sum(cart_add_count), 0) as cartAddCount,
-            ifnull(sum(paid_order_count), 0) as paidOrderCount,
-            ifnull(sum(paid_quantity), 0) as paidQuantity,
-            ifnull(sum(paid_amount), 0) as paidAmount
+        select ifnull(sum(view_count), 0)       as viewCount,
+               ifnull(sum(cart_add_count), 0)   as cartAddCount,
+               ifnull(sum(paid_order_count), 0) as paidOrderCount,
+               ifnull(sum(paid_quantity), 0)    as paidQuantity,
+               ifnull(sum(paid_amount), 0)      as paidAmount
         from product_metric_daily
         where metric_date <![CDATA[>=]]> #{dateFrom}
     </select>
@@ -47,17 +43,16 @@
       GROUP BY metric_date 按日期分组，对每组 SUM 聚合，倒序取前 N 天
     -->
     <select id="selectRecentDailyTotals" resultType="com.example.ecommerce.dto.ShowcaseDailyMetricItem">
-        select
-            metric_date as metricDate,
-            ifnull(sum(view_count), 0) as viewCount,
-            ifnull(sum(cart_add_count), 0) as cartAddCount,
-            ifnull(sum(paid_order_count), 0) as paidOrderCount,
-            ifnull(sum(paid_quantity), 0) as paidQuantity,
-            ifnull(sum(paid_amount), 0) as paidAmount
+        select metric_date                      as metricDate,
+               ifnull(sum(view_count), 0)       as viewCount,
+               ifnull(sum(cart_add_count), 0)   as cartAddCount,
+               ifnull(sum(paid_order_count), 0) as paidOrderCount,
+               ifnull(sum(paid_quantity), 0)    as paidQuantity,
+               ifnull(sum(paid_amount), 0)      as paidAmount
         from product_metric_daily
         group by metric_date
         order by metric_date desc
-        limit #{limit}
+            limit #{limit}
     </select>
 
 </mapper>

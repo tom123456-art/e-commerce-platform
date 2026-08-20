@@ -35,18 +35,59 @@ public class AddressRequest {
     private Boolean isDefault;     // 可空：null 表示不设为默认
 
     // Getter / Setter
-    public String getReceiver() { return receiver; }
-    public void setReceiver(String receiver) { this.receiver = receiver; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-    public String getProvince() { return province; }
-    public void setProvince(String province) { this.province = province; }
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-    public String getDistrict() { return district; }
-    public void setDistrict(String district) { this.district = district; }
-    public String getDetailAddress() { return detailAddress; }
-    public void setDetailAddress(String detailAddress) { this.detailAddress = detailAddress; }
-    public Boolean getIsDefault() { return isDefault; }
-    public void setIsDefault(Boolean isDefault) { this.isDefault = isDefault; }
+    public String getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(String receiver) {
+        this.receiver = receiver;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public String getDetailAddress() {
+        return detailAddress;
+    }
+
+    public void setDetailAddress(String detailAddress) {
+        this.detailAddress = detailAddress;
+    }
+
+    public Boolean getIsDefault() {
+        return isDefault;
+    }
+
+    public void setIsDefault(Boolean isDefault) {
+        this.isDefault = isDefault;
+    }
 }

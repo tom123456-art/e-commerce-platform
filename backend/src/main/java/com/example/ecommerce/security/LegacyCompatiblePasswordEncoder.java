@@ -8,7 +8,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 /**
  * 兼容历史数据的密码编码器。
  * 支持 BCrypt 加密，兼容明文密码的渐进式迁移。
- *
+ * <p>
  * 📋 复制粘贴文件：从 02-code/11-Security/ 复制到项目中 security/ 目录。
  */
 public class LegacyCompatiblePasswordEncoder implements PasswordEncoder {
@@ -17,7 +17,9 @@ public class LegacyCompatiblePasswordEncoder implements PasswordEncoder {
     private final BCryptPasswordEncoder delegate = new BCryptPasswordEncoder();
     private final boolean allowPlainText;
 
-    public LegacyCompatiblePasswordEncoder() { this(false); }
+    public LegacyCompatiblePasswordEncoder() {
+        this(false);
+    }
 
     public LegacyCompatiblePasswordEncoder(boolean allowPlainText) {
         this.allowPlainText = allowPlainText;

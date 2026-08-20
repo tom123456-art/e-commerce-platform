@@ -14,7 +14,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -59,19 +62,19 @@ public class AiChatServiceImpl extends AbstractAiService implements AiChatServic
         String model = TEMPLATE_MODEL;
 
         // 如果ChatClient可以用
-        if (chatClient != null){
+        if (chatClient != null) {
             try {
                 String systemPrompt = buildSystemPrompt();
                 // 拼接对话上下文
                 StringBuilder stringBuilder = new StringBuilder();
-                for (String[] entry : history){
+                for (String[] entry : history) {
                     stringBuilder.append(entry[0]).append(":").append(entry[1]).append("\n");
                 }
                 stringBuilder.append("用户:").append(message).append("\n");
                 // 调用SpringAi
                 String completion = chatClient.prompt().system(systemPrompt).user(stringBuilder.toString())
                         .call().content();
-                if (StringUtils.hasText(completion)){
+                if (StringUtils.hasText(completion)) {
                     reply = completion.trim();
                     fallback = false;
                     provider = "spring-ai";
@@ -98,6 +101,7 @@ public class AiChatServiceImpl extends AbstractAiService implements AiChatServic
 
     /**
      * 保存会话历史记录
+     *
      * @param sessionId
      * @param message
      * @param reply
@@ -106,7 +110,7 @@ public class AiChatServiceImpl extends AbstractAiService implements AiChatServic
         List<String[]> history = sessions.getOrDefault(sessionId, new ArrayList<>());
         history.add(new String[]{"用户", message});
         history.add(new String[]{"客服", reply});
-        if (history.size() > SESSION_HISTORY_SIZE * 2){
+        if (history.size() > SESSION_HISTORY_SIZE * 2) {
             history = new ArrayList<>(
                     history.subList(
                             history.size() - SESSION_HISTORY_SIZE * 2,
@@ -120,9 +124,10 @@ public class AiChatServiceImpl extends AbstractAiService implements AiChatServic
     /**
      * 构建系统提示，用于引导AI的回复方向
      * 让AI知道他是商城的客服，并且了解商城售卖的商品
+     *
      * @return
      */
-    private String buildSystemPrompt(){
+    private String buildSystemPrompt() {
         List<Product> products = getAllProducts();
         String productList = products.stream().limit(20).map(
                 product -> String.format(
@@ -142,14 +147,15 @@ public class AiChatServiceImpl extends AbstractAiService implements AiChatServic
 
     /**
      * 模板降级回复，根据关键词匹配预设的回答，这是兜底使用的回复
+     *
      * @param message
      * @return
      */
-    private String buildTemplateReply(String message){
+    private String buildTemplateReply(String message) {
         String lower = message.toLowerCase();
-        if (lower.contains("推荐") || lower.contains("有什么") || lower.contains("什么好")){
+        if (lower.contains("推荐") || lower.contains("有什么") || lower.contains("什么好")) {
             List<Product> products = getAllProducts();
-            if (!products.isEmpty()){
+            if (!products.isEmpty()) {
                 String items = products.stream().limit(3)
                         .map(product -> product.getName()
                                 + "("

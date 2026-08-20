@@ -20,10 +20,11 @@ public class AdminShowcaseStrategyController {
 
     /**
      * 获取当前策略配置
+     *
      * @return
      */
     @GetMapping
-    public Result<ShowcaseStrategyResponse> getStrategy(){
+    public Result<ShowcaseStrategyResponse> getStrategy() {
         return Result.success(showcaseStrategyService.getStrategy());
     }
 

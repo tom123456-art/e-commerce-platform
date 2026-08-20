@@ -25,35 +25,35 @@
 
     <insert id="insert" parameterType="com.example.ecommerce.entity.Order"
             useGeneratedKeys="true" keyProperty="id">
-        insert into
-            `order` (user_id, order_no, total_amount, status, address,
-                   phone, receiver, create_time, update_time)
+        insert into `order` (user_id, order_no, total_amount, status, address,
+                             phone, receiver, create_time, update_time)
         values (#{userId}, #{orderNo}, #{totalAmount}, #{status}, #{address},
                 #{phone}, #{receiver}, now(), now())
     </insert>
     <!-- 全字段更新，按照主键id定位 -->
     <update id="update" parameterType="com.example.ecommerce.entity.Order">
         update `order`
-        set user_id = #{userId},
-            order_no = #{orderNo},
+        set user_id      = #{userId},
+            order_no     = #{orderNo},
             total_amount = #{totalAmount},
-            status = #{status},
-            address = #{address},
-            phone = #{phone},
-            receiver = #{receiver},
-            update_time = now()
+            status       = #{status},
+            address      = #{address},
+            phone        = #{phone},
+            receiver     = #{receiver},
+            update_time  = now()
         where id = #{id}
     </update>
     <update id="updateStatusByOrderNo">
         update `order`
-        set status = #{status},
+        set status      = #{status},
             update_time = now()
         where order_no = #{orderNo}
     </update>
     <!-- [FIX-3] 软删除：将状态置为 -1（已删除），保留订单与订单项数据用于审计/财务 -->
     <update id="delete">
         update `order`
-        set status = -1, update_time = now()
+        set status      = -1,
+            update_time = now()
         where id = #{id}
     </update>
     <select id="selectById" resultMap="BaseResultMap">

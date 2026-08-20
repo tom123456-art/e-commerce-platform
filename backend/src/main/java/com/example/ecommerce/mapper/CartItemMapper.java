@@ -8,11 +8,11 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
-* @author waqwb
-* @description 针对表【cart_item】的数据库操作Mapper
-* @createDate 2026-07-30 08:55:58
-* @Entity com.example.ecommerce.entity.CartItem
-*/
+ * @author waqwb
+ * @description 针对表【cart_item】的数据库操作Mapper
+ * @createDate 2026-07-30 08:55:58
+ * @Entity com.example.ecommerce.entity.CartItem
+ */
 @Mapper
 public interface CartItemMapper {
 

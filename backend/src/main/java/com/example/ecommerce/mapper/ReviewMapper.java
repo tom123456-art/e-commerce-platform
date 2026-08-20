@@ -7,11 +7,11 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
-* @author waqwb
-* @description 针对表【review】的数据库操作Mapper
-* @createDate 2026-07-30 14:07:03
-* @Entity com.example.ecommerce.entity.Review
-*/
+ * @author waqwb
+ * @description 针对表【review】的数据库操作Mapper
+ * @createDate 2026-07-30 14:07:03
+ * @Entity com.example.ecommerce.entity.Review
+ */
 @Mapper
 public interface ReviewMapper {
     // 查询商品的所有评价，status=1是已通过的评价

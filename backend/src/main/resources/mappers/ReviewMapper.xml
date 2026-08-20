@@ -5,21 +5,22 @@
 <mapper namespace="com.example.ecommerce.mapper.ReviewMapper">
 
     <resultMap id="BaseResultMap" type="com.example.ecommerce.entity.Review">
-            <id property="id" column="id" />
-            <result property="productId" column="product_id" />
-            <result property="userId" column="user_id" />
-            <result property="orderId" column="order_id" />
-            <result property="rating" column="rating" />
-            <result property="content" column="content" />
-            <result property="reply" column="reply" />
-            <result property="replyTime" column="reply_time" />
-            <result property="status" column="status" />
-            <result property="createTime" column="create_time" />
-            <result property="updateTime" column="update_time" />
+        <id property="id" column="id"/>
+        <result property="productId" column="product_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="rating" column="rating"/>
+        <result property="content" column="content"/>
+        <result property="reply" column="reply"/>
+        <result property="replyTime" column="reply_time"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,product_id,user_id,order_id,rating,content,
+        id
+        ,product_id,user_id,order_id,rating,content,
         reply,reply_time,status,create_time,update_time
     </sql>
 
@@ -35,43 +36,52 @@
     <!-- 更新评价回复 -->
     <update id="updateReply">
         update review
-        set reply = #{reply}, reply_time = now(), update_time = now()
+        set reply       = #{reply},
+            reply_time  = now(),
+            update_time = now()
         where id = #{id}
     </update>
 
     <!-- 更新评价状态 -->
     <update id="updateStatus">
         update review
-        set status = #{status}, update_time = now()
+        set status      = #{status},
+            update_time = now()
     </update>
 
     <!-- 查询商品的所有评价，status=1是已通过的评价 -->
     <select id="selectByProductId" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-            from review
+        select
+        <include refid="Base_Column_List"/>
+        from review
         where product_id = #{productId} and status = 1
         order by create_time desc
     </select>
     <!-- 查询商家所有商品的评价 -->
     <select id="selectByMerchantProducts" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"></include>
-            from review
+        select
+        <include refid="Base_Column_List"></include>
+        from review
         where product_id in (
-            select id from product where merchant_id = #{merchantId}
+        select id from product where merchant_id = #{merchantId}
         )
         order by create_time desc
     </select>
 
     <!-- 根据id查询评价 -->
     <select id="selectById" resultMap="BaseResultMap">
-        select <include refid="Base_Column_List"/>
-            from review
+        select
+        <include refid="Base_Column_List"/>
+        from review
         where id = #{id}
     </select>
 
     <!-- 根据商品id查询评价数量 -->
     <select id="countByProductId" resultType="int">
-        select count(*) from review where product_id = #{productId} and status = 1
+        select count(*)
+        from review
+        where product_id = #{productId}
+          and status = 1
     </select>
     <!--
     根据商品id查询评价平均分
@@ -80,7 +90,8 @@
     <select id="avgRatingByProductId" resultType="java.lang.Double">
         select ifnull(avg(rating), 0)
         from review
-        where product_id = #{productId} and status = 1
+        where product_id = #{productId}
+          and status = 1
     </select>
 
 

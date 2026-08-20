@@ -12,10 +12,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=" +
-            "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
-            "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
+        "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
+                "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
 })
 @ActiveProfiles("test")
 @Transactional

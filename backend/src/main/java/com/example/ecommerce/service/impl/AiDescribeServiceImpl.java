@@ -6,6 +6,8 @@ import com.example.ecommerce.config.AiProperties;
 import com.example.ecommerce.dto.AiDescribeRequest;
 import com.example.ecommerce.dto.AiDescribeResponse;
 import com.example.ecommerce.service.AiDescribeService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -14,14 +16,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * AI 文案生成服务实现：商品信息 → LLM → JSON 结构化文案
- *
+ * <p>
  * 设计模式：
  * 1. 生成器模式：AiDescribeResponse 使用 @Builder
  * 2. 模板方法：generateDescription 定义"尝试 AI → 降级模板"流程骨架
@@ -38,8 +38,8 @@ public class AiDescribeServiceImpl implements AiDescribeService {
     private final AiProperties aiProperties;
 
     public AiDescribeServiceImpl(ObjectProvider<ChatClient.Builder> chatClientBuilderProvider,
-                                  Environment environment,
-                                  AiProperties aiProperties) {
+                                 Environment environment,
+                                 AiProperties aiProperties) {
         ChatClient.Builder builder = chatClientBuilderProvider.getIfAvailable();
         this.chatClient = builder == null ? null : builder.build();
         this.environment = environment;
@@ -58,10 +58,10 @@ public class AiDescribeServiceImpl implements AiDescribeService {
             try {
                 String prompt = buildPrompt(productName, category, keyFeatures, style);
                 String completion = chatClient.prompt()
-                    .system("你是一个专业的电商文案撰写专家，擅长撰写吸引人的商品描述、SEO标题和卖点亮点。请用简体中文回答。")
-                    .user(prompt)
-                    .call()
-                    .content();
+                        .system("你是一个专业的电商文案撰写专家，擅长撰写吸引人的商品描述、SEO标题和卖点亮点。请用简体中文回答。")
+                        .user(prompt)
+                        .call()
+                        .content();
 
                 if (StringUtils.hasText(completion)) {
                     return parseAiResponse(completion);
@@ -146,16 +146,16 @@ public class AiDescribeServiceImpl implements AiDescribeService {
 
             // @Builder 链式构造
             return AiDescribeResponse.builder()
-                .description(description)
-                .seoTitle(seoTitle)
-                .highlights(highlights)
-                .build();
+                    .description(description)
+                    .seoTitle(seoTitle)
+                    .highlights(highlights)
+                    .build();
         } catch (Exception e) {
             // 解析失败：把原始文本作为 description（保证有内容返回）
             log.warn("Failed to parse AI response as JSON, using raw text", e);
             return AiDescribeResponse.builder()
-                .description(response)
-                .build();
+                    .description(response)
+                    .build();
         }
     }
 
@@ -165,24 +165,24 @@ public class AiDescribeServiceImpl implements AiDescribeService {
      */
     private AiDescribeResponse generateTemplateResponse(String productName, String category, String keyFeatures) {
         String description = String.format(
-            "%s是一款优质的%s产品。%s品质保证，值得信赖。",
-            productName,
-            category != null ? category : "",
-            keyFeatures != null ? keyFeatures + "。" : ""
+                "%s是一款优质的%s产品。%s品质保证，值得信赖。",
+                productName,
+                category != null ? category : "",
+                keyFeatures != null ? keyFeatures + "。" : ""
         );
 
         String seoTitle = String.format("【优选】%s - 品质之选", productName);
 
         List<String> highlights = Arrays.asList(
-            "品质保证，正品行货",
-            "价格实惠，性价比高",
-            "售后无忧，七天退换"
+                "品质保证，正品行货",
+                "价格实惠，性价比高",
+                "售后无忧，七天退换"
         );
 
         return AiDescribeResponse.builder()
-            .description(description)
-            .seoTitle(seoTitle)
-            .highlights(highlights)
-            .build();
+                .description(description)
+                .seoTitle(seoTitle)
+                .highlights(highlights)
+                .build();
     }
 }

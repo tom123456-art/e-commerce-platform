@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Spring Boot启动主类
  *
- * @SpringBootApplication  = SpringBoot启动主类
- * @EnableScheduling  启动定时任务
+ * @SpringBootApplication = SpringBoot启动主类
+ * @EnableScheduling 启动定时任务
  */
 @SpringBootApplication
 @EnableScheduling

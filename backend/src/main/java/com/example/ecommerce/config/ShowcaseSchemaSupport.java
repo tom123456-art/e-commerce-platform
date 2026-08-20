@@ -73,7 +73,7 @@ public class ShowcaseSchemaSupport {
 
     /**
      * 初始化状态标志。
-     *
+     * <p>
      * 【教学】AtomicBoolean 用于线程安全的"是否已初始化"判断。
      * volatile 语义保证多线程间的可见性——一个线程设置为 true 后，
      * 其他线程立即可见，不会读到旧值（false）。
@@ -83,10 +83,10 @@ public class ShowcaseSchemaSupport {
     /**
      * 构造器注入所有依赖。
      *
-     * @param jdbcTemplate Spring JDBC 模板（用于执行 DDL）
+     * @param jdbcTemplate                 Spring JDBC 模板（用于执行 DDL）
      * @param showcaseStrategyConfigMapper MyBatis Mapper（用于 DML 操作）
-     * @param showcaseProperties 展示策略配置（提供默认值）
-     * @param objectMapper JSON 序列化工具（用于将权重配置序列化为 JSON）
+     * @param showcaseProperties           展示策略配置（提供默认值）
+     * @param objectMapper                 JSON 序列化工具（用于将权重配置序列化为 JSON）
      */
     public ShowcaseSchemaSupport(JdbcTemplate jdbcTemplate,
                                  ShowcaseStrategyConfigMapper showcaseStrategyConfigMapper,
@@ -100,14 +100,14 @@ public class ShowcaseSchemaSupport {
 
     /**
      * 【教学】确保数据库 Schema 就绪
-     *
+     * <p>
      * 使用"双重检查锁定"模式确保只执行一次初始化：
-     *   1. 第一次检查（无锁）：如果已初始化，直接返回
-     *   2. 获取锁（synchronized）
-     *   3. 第二次检查（有锁）：防止并发场景下的重复初始化
-     *   4. 执行初始化：建表 + 插入默认配置
-     *   5. 标记为已初始化
-     *
+     * 1. 第一次检查（无锁）：如果已初始化，直接返回
+     * 2. 获取锁（synchronized）
+     * 3. 第二次检查（有锁）：防止并发场景下的重复初始化
+     * 4. 执行初始化：建表 + 插入默认配置
+     * 5. 标记为已初始化
+     * <p>
      * 这个方法不会在应用启动时自动调用，而是由需要使用展示策略的服务在首次使用时调用。
      * 这是一种"懒初始化"（Lazy Initialization）策略。
      */
@@ -131,67 +131,67 @@ public class ShowcaseSchemaSupport {
 
     /**
      * 【教学】创建数据库表
-     *
+     * <p>
      * 使用 CREATE TABLE IF NOT EXISTS 语句，如果表已存在则不会报错。
      * 这种"幂等"操作可以安全地多次执行。
-     *
+     * <p>
      * 创建了三张表：
-     *   1. showcase_strategy_config：展示策略配置表
-     *   2. product_view_event：商品浏览事件表
-     *   3. product_metric_daily：商品每日指标表
+     * 1. showcase_strategy_config：展示策略配置表
+     * 2. product_view_event：商品浏览事件表
+     * 3. product_metric_daily：商品每日指标表
      */
     private void createTables() {
         // 【教学】展示策略配置表
         // 存储展示策略的权重配置和运行模式（手动/自动调优）
         jdbcTemplate.execute("create table if not exists showcase_strategy_config ("
-            + "id bigint primary key,"
-            + "mode varchar(16) not null,"                    // MANUAL 或 AUTO
-            + "short_window_days int not null,"               // 短期窗口天数（如 7 天）
-            + "long_window_days int not null,"                // 长期窗口天数（如 30 天）
-            + "cart_preference_weight decimal(6,4) not null," // 购物车偏好权重
-            + "hot_weights_json text not null,"               // 热销权重（JSON 格式）
-            + "anonymous_weights_json text not null,"         // 匿名用户权重（JSON 格式）
-            + "personalized_weights_json text not null,"      // 个性化权重（JSON 格式）
-            + "hot_signal_weights_json text not null,"        // 热销信号权重（JSON 格式）
-            + "last_auto_tuned_at datetime null,"             // 上次自动调优时间
-            + "create_time datetime default current_timestamp,"
-            + "update_time datetime default current_timestamp on update current_timestamp"
-            + ")");
+                + "id bigint primary key,"
+                + "mode varchar(16) not null,"                    // MANUAL 或 AUTO
+                + "short_window_days int not null,"               // 短期窗口天数（如 7 天）
+                + "long_window_days int not null,"                // 长期窗口天数（如 30 天）
+                + "cart_preference_weight decimal(6,4) not null," // 购物车偏好权重
+                + "hot_weights_json text not null,"               // 热销权重（JSON 格式）
+                + "anonymous_weights_json text not null,"         // 匿名用户权重（JSON 格式）
+                + "personalized_weights_json text not null,"      // 个性化权重（JSON 格式）
+                + "hot_signal_weights_json text not null,"        // 热销信号权重（JSON 格式）
+                + "last_auto_tuned_at datetime null,"             // 上次自动调优时间
+                + "create_time datetime default current_timestamp,"
+                + "update_time datetime default current_timestamp on update current_timestamp"
+                + ")");
 
         // 【教学】商品浏览事件表
         // 记录用户的商品浏览行为，用于计算热度和个性化推荐
         jdbcTemplate.execute("create table if not exists product_view_event ("
-            + "id bigint primary key auto_increment,"
-            + "product_id bigint not null,"        // 被浏览的商品 ID
-            + "user_id bigint null,"               // 浏览用户 ID（null 表示匿名用户）
-            + "source varchar(32) not null,"       // 浏览来源（如 homepage、search、detail）
-            + "view_date date not null,"           // 浏览日期（用于按天聚合）
-            + "viewed_at datetime default current_timestamp,"
-            + "key idx_product_view_event_product_date (product_id, view_date),"  // 复合索引
-            + "key idx_product_view_event_user_date (user_id, view_date)"         // 复合索引
-            + ")");
+                + "id bigint primary key auto_increment,"
+                + "product_id bigint not null,"        // 被浏览的商品 ID
+                + "user_id bigint null,"               // 浏览用户 ID（null 表示匿名用户）
+                + "source varchar(32) not null,"       // 浏览来源（如 homepage、search、detail）
+                + "view_date date not null,"           // 浏览日期（用于按天聚合）
+                + "viewed_at datetime default current_timestamp,"
+                + "key idx_product_view_event_product_date (product_id, view_date),"  // 复合索引
+                + "key idx_product_view_event_user_date (user_id, view_date)"         // 复合索引
+                + ")");
 
         // 【教学】商品每日指标表
         // 按天聚合商品的各项指标，用于计算热度得分
         jdbcTemplate.execute("create table if not exists product_metric_daily ("
-            + "id bigint primary key auto_increment,"
-            + "metric_date date not null,"                        // 统计日期
-            + "product_id bigint not null,"                       // 商品 ID
-            + "view_count int not null default 0,"                // 浏览次数
-            + "cart_add_count int not null default 0,"            // 加购次数
-            + "paid_order_count int not null default 0,"          // 支付订单数
-            + "paid_quantity int not null default 0,"             // 支付商品数量
-            + "paid_amount decimal(12,2) not null default 0.00," // 支付金额
-            + "create_time datetime default current_timestamp,"
-            + "update_time datetime default current_timestamp on update current_timestamp,"
-            + "unique key uk_product_metric_daily_date_product (metric_date, product_id),"  // 唯一约束
-            + "key idx_product_metric_daily_date (metric_date)"
-            + ")");
+                + "id bigint primary key auto_increment,"
+                + "metric_date date not null,"                        // 统计日期
+                + "product_id bigint not null,"                       // 商品 ID
+                + "view_count int not null default 0,"                // 浏览次数
+                + "cart_add_count int not null default 0,"            // 加购次数
+                + "paid_order_count int not null default 0,"          // 支付订单数
+                + "paid_quantity int not null default 0,"             // 支付商品数量
+                + "paid_amount decimal(12,2) not null default 0.00," // 支付金额
+                + "create_time datetime default current_timestamp,"
+                + "update_time datetime default current_timestamp on update current_timestamp,"
+                + "unique key uk_product_metric_daily_date_product (metric_date, product_id),"  // 唯一约束
+                + "key idx_product_metric_daily_date (metric_date)"
+                + ")");
     }
 
     /**
      * 【教学】确保默认配置存在
-     *
+     * <p>
      * 如果数据库中没有展示策略配置，则插入一条默认配置。
      * 默认配置的值来自 ShowcaseProperties（application.yml 中的配置）。
      */

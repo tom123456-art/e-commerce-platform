@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 商品展示策略配置数据访问接口。
- *
+ * <p>
  * 采用"单行配置表"模式：表中只有一条记录，存储所有展示算法参数
  * （mode、窗口期、各维度权重、购物车偏好权重等）。
  */

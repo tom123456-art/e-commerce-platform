@@ -12,7 +12,6 @@ import com.example.ecommerce.security.TokenService;
 import com.example.ecommerce.service.OrderService;
 import com.example.ecommerce.service.PaymentService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -25,22 +24,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * PaymentController 切片测试（@WebMvcTest + MockMvc）。
@@ -69,7 +59,9 @@ class PaymentControllerTest {
     @MockitoBean
     private OrderService orderService;
 
-    /** 支付宝配置属性：Mock 掉，以便精确控制 isMockEnabled() 开关 */
+    /**
+     * 支付宝配置属性：Mock 掉，以便精确控制 isMockEnabled() 开关
+     */
     @MockitoBean
     private AlipayProperties alipayProperties;
 
@@ -85,12 +77,12 @@ class PaymentControllerTest {
     @BeforeEach
     void setUpTokens() {
         userDetails = new CustomUserDetails(
-            2L, "user1", "password", 1,
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                2L, "user1", "password", 1,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );
         adminDetails = new CustomUserDetails(
-            1L, "admin", "password", 1,
-            Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
+                1L, "admin", "password", 1,
+                Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
         );
         when(tokenService.parseToken("user-token")).thenReturn(userDetails);
         when(tokenService.parseToken("admin-token")).thenReturn(adminDetails);
@@ -112,10 +104,10 @@ class PaymentControllerTest {
         when(paymentService.createPayment(eq("ORDER-1"), any(), any())).thenReturn("http://localhost:8080/api/payment/mock/success?orderNo=ORDER-1");
 
         mockMvc.perform(post("/api/payment/create")
-                .header("Authorization", "Bearer user-token")
-                .param("orderNo", "ORDER-1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.paymentUrl").value(containsString("mock/success")));
+                        .header("Authorization", "Bearer user-token")
+                        .param("orderNo", "ORDER-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.paymentUrl").value(containsString("mock/success")));
 
         verify(paymentService).createPayment(eq("ORDER-1"), any(), any());
     }
@@ -128,10 +120,10 @@ class PaymentControllerTest {
         when(orderService.getByOrderNo("NOPE")).thenReturn(null);
 
         mockMvc.perform(post("/api/payment/create")
-                .header("Authorization", "Bearer user-token")
-                .param("orderNo", "NOPE"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value(Result.NOT_FOUND_CODE));
+                        .header("Authorization", "Bearer user-token")
+                        .param("orderNo", "NOPE"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(Result.NOT_FOUND_CODE));
 
         verify(paymentService, never()).createPayment(any(), any(), any());
     }
@@ -148,10 +140,10 @@ class PaymentControllerTest {
         when(orderService.getByOrderNo("ORDER-1")).thenReturn(order);
 
         mockMvc.perform(post("/api/payment/create")
-                .header("Authorization", "Bearer user-token")
-                .param("orderNo", "ORDER-1"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                        .header("Authorization", "Bearer user-token")
+                        .param("orderNo", "ORDER-1"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
 
         verify(paymentService, never()).createPayment(any(), any(), any());
     }
@@ -170,10 +162,10 @@ class PaymentControllerTest {
         when(paymentService.createPayment(eq("ORDER-1"), any(), any())).thenReturn("http://localhost:8080/api/payment/mock/success?orderNo=ORDER-1");
 
         mockMvc.perform(post("/api/payment/create")
-                .header("Authorization", "Bearer admin-token")
-                .param("orderNo", "ORDER-1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.paymentUrl").value(containsString("mock/success")));
+                        .header("Authorization", "Bearer admin-token")
+                        .param("orderNo", "ORDER-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.paymentUrl").value(containsString("mock/success")));
     }
 
     // ==================== 异步回调：纯文本响应 ====================
@@ -186,10 +178,10 @@ class PaymentControllerTest {
         when(paymentService.handleCallback(anyMap())).thenReturn(true);
 
         mockMvc.perform(post("/api/payment/callback")
-                .param("out_trade_no", "ORDER-1")
-                .param("trade_status", "TRADE_SUCCESS"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("success"));
+                        .param("out_trade_no", "ORDER-1")
+                        .param("trade_status", "TRADE_SUCCESS"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("success"));
 
         // 验证 Service 收到的参数里带了商户订单号
         verify(paymentService).handleCallback(argThat(m -> "ORDER-1".equals(m.get("out_trade_no"))));
@@ -203,9 +195,9 @@ class PaymentControllerTest {
         when(paymentService.handleCallback(anyMap())).thenReturn(false);
 
         mockMvc.perform(post("/api/payment/callback")
-                .param("out_trade_no", "ORDER-1"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("failure"));
+                        .param("out_trade_no", "ORDER-1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("failure"));
     }
 
     // ==================== Mock 支付：开关控制 + HTML 渲染 ====================
@@ -219,17 +211,17 @@ class PaymentControllerTest {
         when(paymentService.handleMockCallback(anyMap())).thenReturn(true);
 
         mockMvc.perform(get("/api/payment/mock/success")
-                .header("Authorization", "Bearer user-token")
-                .param("orderNo", "ORDER-1")
-                .param("amount", "100.00")
-                .param("subject", "手机"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
-            .andExpect(content().string(containsString("ORDER-1")));
+                        .header("Authorization", "Bearer user-token")
+                        .param("orderNo", "ORDER-1")
+                        .param("amount", "100.00")
+                        .param("subject", "手机"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("ORDER-1")));
 
         // 控制器构造的模拟回调参数：含 orderNo 与固定 status=SUCCESS
         verify(paymentService).handleMockCallback(argThat(m ->
-            "ORDER-1".equals(m.get("orderNo")) && "SUCCESS".equals(m.get("status"))));
+                "ORDER-1".equals(m.get("orderNo")) && "SUCCESS".equals(m.get("status"))));
     }
 
     /**
@@ -241,10 +233,10 @@ class PaymentControllerTest {
         when(alipayProperties.isMockEnabled()).thenReturn(false);
 
         mockMvc.perform(get("/api/payment/mock/success")
-                .header("Authorization", "Bearer user-token")
-                .param("orderNo", "ORDER-1"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                        .header("Authorization", "Bearer user-token")
+                        .param("orderNo", "ORDER-1"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
 
         verify(paymentService, never()).handleMockCallback(any());
     }

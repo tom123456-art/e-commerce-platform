@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Service
 public class UserAddressServiceImpl implements UserAddressService {
 
@@ -48,7 +49,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     public UserAddress create(Long userId, AddressRequest request) {
         UserAddress userAddress = toEntity(userId, request);
         // 判断地址是否是默认地址，如果没有地址的话，设置第一个地址为默认地址
-        if (Boolean.TRUE.equals(request.getIsDefault()) || getDefaultAddress(userId) == null){
+        if (Boolean.TRUE.equals(request.getIsDefault()) || getDefaultAddress(userId) == null) {
             userAddressMapper.clearDefaultByUserId(userId);// 清除旧默认
             userAddress.setIsDefault(1); // 设置为默认地址
         } else {
@@ -61,11 +62,12 @@ public class UserAddressServiceImpl implements UserAddressService {
 
     /**
      * 把DTO转换成Entity，并且要对字符串进行trim操作
+     *
      * @param userId
      * @param request
      * @return
      */
-    private UserAddress toEntity(Long userId, AddressRequest request){
+    private UserAddress toEntity(Long userId, AddressRequest request) {
         UserAddress userAddress = new UserAddress();
         userAddress.setUserId(userId);
         userAddress.setReceiver(request.getReceiver().trim());
@@ -90,7 +92,7 @@ public class UserAddressServiceImpl implements UserAddressService {
         UserAddress ownedAddress = getOwnedAddress(userId, id);
         UserAddress address = toEntity(userId, request);
         address.setId(ownedAddress.getId());
-        if (Boolean.TRUE.equals(request.getIsDefault())){
+        if (Boolean.TRUE.equals(request.getIsDefault())) {
             // 显示设为默认：先清除其他的默认，再设置当前地址为默认
             userAddressMapper.clearDefaultByUserId(userId);
             address.setIsDefault(1);
@@ -118,10 +120,10 @@ public class UserAddressServiceImpl implements UserAddressService {
         // 删除地址
         userAddressMapper.delete(id, userId);
         // 如果删除的是默认地址，那么会自动将剩余地址的第一个设置为默认地址
-        if (ownedAddress.getIsDefault() != null && ownedAddress.getIsDefault() == 1){
+        if (ownedAddress.getIsDefault() != null && ownedAddress.getIsDefault() == 1) {
             // 获取当前用户的所有地址
             List<UserAddress> userAddresses = userAddressMapper.selectByUserId(userId);
-            if (!userAddresses.isEmpty()){
+            if (!userAddresses.isEmpty()) {
                 setDefault(userId, userAddresses.get(0).getId());
             }
         }
@@ -149,7 +151,7 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public UserAddress getOwnedAddress(Long userId, Long id) {
         UserAddress address = userAddressMapper.selectById(id);
-        if (address == null || !userId.equals(address.getUserId())){
+        if (address == null || !userId.equals(address.getUserId())) {
             throw new BusinessException(Result.NOT_FOUND_CODE, "地址不存在");
         }
         return address;

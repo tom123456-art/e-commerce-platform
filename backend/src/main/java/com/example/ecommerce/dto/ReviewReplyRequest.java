@@ -15,8 +15,19 @@ public class ReviewReplyRequest {
     private String reply;
 
     // getter/setter（后端 Service 层通过 getXxx() 读取字段值）
-    public Long getReviewId() { return reviewId; }
-    public void setReviewId(Long reviewId) { this.reviewId = reviewId; }
-    public String getReply() { return reply; }
-    public void setReply(String reply) { this.reply = reply; }
+    public Long getReviewId() {
+        return reviewId;
+    }
+
+    public void setReviewId(Long reviewId) {
+        this.reviewId = reviewId;
+    }
+
+    public String getReply() {
+        return reply;
+    }
+
+    public void setReply(String reply) {
+        this.reply = reply;
+    }
 }

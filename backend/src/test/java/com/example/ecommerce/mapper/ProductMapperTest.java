@@ -12,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -43,14 +41,14 @@ class ProductMapperTest {
     }
 
     @Test
-    void selectPage_WithKeyWord(){
+    void selectPage_WithKeyWord() {
         productMapper.insert(testProduct);
         ProductQueryRequest request = new ProductQueryRequest();
         request.setKeyword("测试");
         request.setPage(1);
         request.setPageSize(10);
         List<Product> products = productMapper.selectPage(request);
-        for (Product product : products){
+        for (Product product : products) {
             System.out.println(product);
         }
         System.out.println(
@@ -61,7 +59,7 @@ class ProductMapperTest {
     }
 
     @Test
-    void selectPage_WithPriceRange(){
+    void selectPage_WithPriceRange() {
         productMapper.insert(testProduct);
         ProductQueryRequest request = new ProductQueryRequest();
         request.setMinPrice(new BigDecimal("50"));
@@ -72,10 +70,10 @@ class ProductMapperTest {
         List<Product> products = productMapper.selectPage(request);
         boolean flag = products.stream().allMatch(
                 product ->
-                        product.getPrice().compareTo(new BigDecimal("50")) >= 0  &&
-                        product.getPrice().compareTo(new BigDecimal("150")) <= 0
+                        product.getPrice().compareTo(new BigDecimal("50")) >= 0 &&
+                                product.getPrice().compareTo(new BigDecimal("150")) <= 0
         );
-        if (flag){
+        if (flag) {
             System.out.println("商品的价格在50-150区间");
         } else {
             System.out.println("商品的价格不在50-150区间");
@@ -83,7 +81,7 @@ class ProductMapperTest {
     }
 
     @Test
-    void selectPage_WithSorting(){
+    void selectPage_WithSorting() {
         productMapper.insert(testProduct);
         Product product = new Product();
         product.setName("商品2");
@@ -100,7 +98,7 @@ class ProductMapperTest {
         request.setSortBy("price");
         request.setSortDirection("asc");
         List<Product> products = productMapper.selectPage(request);
-        if (products.size() >= 2){
+        if (products.size() >= 2) {
             System.out.println(
                     products.get(0).getPrice().compareTo(products.get(1).getPrice()) <= 0);
         }
@@ -110,7 +108,7 @@ class ProductMapperTest {
      * 乐观锁验证，如果库存充足，扣减成功，返回1
      */
     @Test
-    void decreaseStock_Success(){
+    void decreaseStock_Success() {
         productMapper.insert(testProduct);
         Long testProductId = testProduct.getId();
         Integer status = testProduct.getStatus();

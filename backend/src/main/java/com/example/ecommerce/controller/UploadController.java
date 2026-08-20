@@ -2,12 +2,9 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -15,47 +12,46 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.*;
 
 /**
  * 文件上传控制器 —— 处理图片上传与已上传图片列表查询。
- *
+ * <p>
  * 【安全设计：四层防御】
- *   1. 空文件检查：file.isEmpty() 拒绝空上传
- *   2. MIME 类型白名单：contentType.startsWith("image/") 只允许图片
- *   3. 文件大小限制：5MB 上限，防止恶意大文件耗尽磁盘
- *   4. UUID 重命名：不用客户端原始文件名，防止目录遍历攻击和文件名冲突
+ * 1. 空文件检查：file.isEmpty() 拒绝空上传
+ * 2. MIME 类型白名单：contentType.startsWith("image/") 只允许图片
+ * 3. 文件大小限制：5MB 上限，防止恶意大文件耗尽磁盘
+ * 4. UUID 重命名：不用客户端原始文件名，防止目录遍历攻击和文件名冲突
  */
 @Tag(name = "文件上传接口", description = "图片等文件上传")
 @RestController
 @RequestMapping("/api/upload")
 public class UploadController {
 
-    /** 上传目录（可配置）：${app.upload.dir:uploads} 表示读配置，缺省值为 "uploads" */
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
-
-    /** 图片访问 URL 前缀：拼接在文件名前构成完整访问地址 */
-    @Value("${app.upload.url-prefix:/uploads}")
-    private String urlPrefix;
-
-    /** 允许的图片扩展名白名单（小写，含前导 "."） */
+    /**
+     * 允许的图片扩展名白名单（小写，含前导 "."）
+     */
     private static final java.util.Set<String> ALLOWED_IMAGE_EXTENSIONS = java.util.Set.of(
             ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg"
     );
+    /**
+     * 上传目录（可配置）：${app.upload.dir:uploads} 表示读配置，缺省值为 "uploads"
+     */
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+    /**
+     * 图片访问 URL 前缀：拼接在文件名前构成完整访问地址
+     */
+    @Value("${app.upload.url-prefix:/uploads}")
+    private String urlPrefix;
 
     /**
      * 上传图片接口。
-     *
+     * <p>
      * 请求：POST /api/upload/image
      * Content-Type: multipart/form-data
      * 表单字段：file（文件）
-     *
+     * <p>
      * 响应：Result<Map<String,String>>，包含 url 和 filename
      */
     @PostMapping("/image")
@@ -102,7 +98,7 @@ public class UploadController {
             if (!ALLOWED_IMAGE_EXTENSIONS.contains(extLower)) {
                 return Result.failure(400, "不支持的文件类型，仅允许: " + ALLOWED_IMAGE_EXTENSIONS);
             }
-            String filename = UUID.randomUUID().toString() + extLower;
+            String filename = UUID.randomUUID() + extLower;
 
             // 保存文件到磁盘
             // resolve() 拼接路径，transferTo() 将临时文件移动到目标位置
@@ -125,10 +121,10 @@ public class UploadController {
 
     /**
      * 获取已上传图片列表（用于图片选择器弹窗）。
-     *
+     * <p>
      * 请求：GET /api/upload/images?dir=&urlPrefixParam=
      * 响应：Result<List<Map>>，每项包含 filename、url、size
-     *
+     * <p>
      * 【路径安全】checkPathSafety 防止目录遍历：扫描路径必须在 uploadDir 根目录内
      */
     @GetMapping("/images")
@@ -158,7 +154,7 @@ public class UploadController {
 
     /**
      * 递归收集目录中的图片文件信息（深度优先遍历）。
-     *
+     * <p>
      * DirectoryStream 比 File.listFiles() 更节省内存（延迟加载），
      * 适合处理包含大量文件的目录。
      */

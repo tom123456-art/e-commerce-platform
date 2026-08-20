@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证控制器 —— 处理登录、注册、退出。
- *
+ * <p>
  * 所有接口路径以 /api/auth 为前缀，由 SecurityConfig 配置为公开接口（无需认证）。
  * 响应统一用 Result<T> 包装，符合项目 API 规范。
  *
@@ -50,7 +50,7 @@ public class AuthController {
 
     /**
      * 获取当前登录用户信息 —— 用于前端刷新页面后恢复会话。
-     *
+     * <p>
      * 不使用 @AuthenticationPrincipal 是为了显式控制错误响应：
      * - 未携带 Token → 401 "未提供有效的认证Token"
      * - Token 无效/过期 → 401 "Token无效或已过期"
@@ -87,7 +87,7 @@ public class AuthController {
 
     /**
      * 退出接口 —— 需认证（但实际上即使未携带 Token 也返回成功，避免前端处理复杂错误）。
-     *
+     * <p>
      * 登出的核心动作是调用 TokenService.revokeToken() 删除 Redis 中的会话记录，
      * 使该 Token 在下一次 parseToken 时失效（即使签名仍然正确）。
      */

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name="收货地址接口", description = "收货地址查询与管理")
+@Tag(name = "收货地址接口", description = "收货地址查询与管理")
 @RestController
 @RequestMapping("/api/addresses")
 public class UserAddressController {
@@ -24,7 +24,7 @@ public class UserAddressController {
     }
 
     @GetMapping
-    public Result<List<UserAddress>> getAddresses(Authentication authentication){
+    public Result<List<UserAddress>> getAddresses(Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         return Result.success(userAddressService.getByUserId(user.getId()));
     }
@@ -32,7 +32,7 @@ public class UserAddressController {
     // 新增地址
     @PostMapping
     public Result<UserAddress> create(@Valid @RequestBody AddressRequest request,
-                                      Authentication authentication){
+                                      Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         return Result.success(userAddressService.create(user.getId(), request));
     }
@@ -41,7 +41,7 @@ public class UserAddressController {
     @PostMapping("/{id}")
     public Result<UserAddress> update(@PathVariable Long id,
                                       @Valid @RequestBody AddressRequest request,
-                                      Authentication authentication){
+                                      Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         return Result.success(userAddressService.update(user.getId(), id, request));
     }
@@ -49,7 +49,7 @@ public class UserAddressController {
     // 删除
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id,
-                                      Authentication authentication){
+                               Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         userAddressService.delete(user.getId(), id);
         return Result.success();
@@ -58,7 +58,7 @@ public class UserAddressController {
     // 设置默认
     @PutMapping("/{id}/default")
     public Result<Void> setDefault(@PathVariable Long id,
-                                   Authentication authentication){
+                                   Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         userAddressService.setDefault(user.getId(), id);
         return Result.success();

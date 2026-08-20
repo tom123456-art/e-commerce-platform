@@ -4,11 +4,11 @@ import com.example.ecommerce.common.Result;
 import com.example.ecommerce.dto.AiRecommendRequest;
 import com.example.ecommerce.dto.AiRecommendResponse;
 import com.example.ecommerce.service.AiRecommendService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "AI 推荐接口", description = "AI 个性化商品推荐")

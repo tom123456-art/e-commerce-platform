@@ -19,8 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Collections;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.mockito.Mockito.*;
+
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,34 +41,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 )
 class ApiControllerTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-        // 所有Service用Mock替换，Controller不会真去查询数据库
-        @MockitoBean
-        private ProductService productService;
-        @MockitoBean
-        private CartService cartService;
+    // 所有Service用Mock替换，Controller不会真去查询数据库
+    @MockitoBean
+    private ProductService productService;
+    @MockitoBean
+    private CartService cartService;
 
-        @MockitoBean
-        private ProductMetricService productMetricService;
+    @MockitoBean
+    private ProductMetricService productMetricService;
 
-        /**
-         * 商品列表接口允许匿名访问
-         */
-        @Test
-        void productListEndpointIsPublic() throws Exception {
-                Product product = new Product();
-                product.setId(1L);
-                product.setName("Test Product");
-                product.setPrice(new BigDecimal("1999.00"));
-                when(productService.getAll()).thenReturn(
-                        Collections.singletonList(product)
-                );
-                mockMvc.perform(get("/api/products"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.data[0].name")
-                                .value("Test Product"));
-        }
+    /**
+     * 商品列表接口允许匿名访问
+     */
+    @Test
+    void productListEndpointIsPublic() throws Exception {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Test Product");
+        product.setPrice(new BigDecimal("1999.00"));
+        when(productService.getAll()).thenReturn(
+                Collections.singletonList(product)
+        );
+        mockMvc.perform(get("/api/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].name")
+                        .value("Test Product"));
+    }
 
 }

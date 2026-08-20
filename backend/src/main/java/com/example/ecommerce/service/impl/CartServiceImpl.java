@@ -64,7 +64,7 @@ public class CartServiceImpl implements CartService {
                 request.getProductId()
         );
         // 当购物车为空的时候，我们新增记录
-        if (existing == null){
+        if (existing == null) {
             CartItem cartItem = new CartItem();
             cartItem.setUserId(userId);
             cartItem.setProductId(request.getProductId());
@@ -159,7 +159,7 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void removeItem(Long userId, Long itemId) {
-        cartItemMapper.deleteByIdAndUserId(itemId,userId);
+        cartItemMapper.deleteByIdAndUserId(itemId, userId);
     }
 
     /**
@@ -198,7 +198,7 @@ public class CartServiceImpl implements CartService {
 
         // 创建订单项
         List<OrderItem> orderItems = new ArrayList<>();
-        for (CartItemResponse item : cartItems){
+        for (CartItemResponse item : cartItems) {
             OrderItem orderItem = new OrderItem();
             orderItem.setProductId(item.getProductId());
             orderItem.setProductName(item.getProductName());
@@ -218,6 +218,7 @@ public class CartServiceImpl implements CartService {
 
     /**
      * 解析地址
+     *
      * @param userId
      * @param request
      * @return

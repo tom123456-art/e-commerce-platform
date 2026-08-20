@@ -12,24 +12,26 @@ import java.util.*;
 
 /**
  * Excel 导入导出工具类 —— 基于 Apache POI 实现。
- *
+ * <p>
  * 设计原则：
- *   1. 纯静态方法：工具类无状态，所有方法 static
- *   2. 通用导出 + 专用导入：exportExcel 是通用方法，parseProducts 是商品专用解析
- *   3. 容错处理：空行跳过、类型转换失败时抛出带行号的错误信息
- *
+ * 1. 纯静态方法：工具类无状态，所有方法 static
+ * 2. 通用导出 + 专用导入：exportExcel 是通用方法，parseProducts 是商品专用解析
+ * 3. 容错处理：空行跳过、类型转换失败时抛出带行号的错误信息
+ * <p>
  * 使用场景：
- *   - 管理后台"导出商品列表"按钮 → exportExcel()
- *   - 管理后台"下载导入模板"按钮 → exportProductImportTemplate()
- *   - 管理后台"上传 Excel 导入商品"按钮 → parseProducts()
- *
+ * - 管理后台"导出商品列表"按钮 → exportExcel()
+ * - 管理后台"下载导入模板"按钮 → exportProductImportTemplate()
+ * - 管理后台"上传 Excel 导入商品"按钮 → parseProducts()
+ * <p>
  * 依赖：pom.xml 中需要引入 poi 和 poi-ooxml（第09章管理后台引入）
  */
 public class ExcelUtil {
 
-    /** 商品导入模板的列头（中文） */
+    /**
+     * 商品导入模板的列头（中文）
+     */
     private static final String[] PRODUCT_HEADERS = {
-        "商品名称", "商品描述", "价格", "库存", "图片地址", "分类ID", "上架状态"
+            "商品名称", "商品描述", "价格", "库存", "图片地址", "分类ID", "上架状态"
     };
 
     /**
@@ -37,6 +39,7 @@ public class ExcelUtil {
      * Key = 规范化后的列头（去空格、转小写），Value = 标准字段名
      */
     private static final Map<String, String> PRODUCT_HEADER_MAPPING = new LinkedHashMap<>();
+
     static {
         PRODUCT_HEADER_MAPPING.put("商品名称", "name");
         PRODUCT_HEADER_MAPPING.put("name", "name");
@@ -127,13 +130,13 @@ public class ExcelUtil {
 
     /**
      * 解析上传的 Excel 文件为商品列表。
-     *
+     * <p>
      * 处理流程：
-     *   1. 读取表头行，建立"列索引 → 字段名"的映射
-     *   2. 校验必填列是否存在（商品名称、价格）
-     *   3. 逐行读取数据，跳过空行
-     *   4. 类型转换：价格 → BigDecimal，库存/分类 → Integer，状态 → 1/0
-     *   5. 转换失败时抛出带行号的错误信息，方便用户定位问题
+     * 1. 读取表头行，建立"列索引 → 字段名"的映射
+     * 2. 校验必填列是否存在（商品名称、价格）
+     * 3. 逐行读取数据，跳过空行
+     * 4. 类型转换：价格 → BigDecimal，库存/分类 → Integer，状态 → 1/0
+     * 5. 转换失败时抛出带行号的错误信息，方便用户定位问题
      *
      * @param inputStream 上传的 Excel 文件输入流
      * @return 解析后的商品列表
@@ -193,7 +196,9 @@ public class ExcelUtil {
 
     // ==================== 内部辅助方法 ====================
 
-    /** 读取表头行，返回"列索引 → 标准字段名"的映射 */
+    /**
+     * 读取表头行，返回"列索引 → 标准字段名"的映射
+     */
     private static Map<Integer, String> readHeaderIndexMap(Row headerRow) {
         Map<Integer, String> map = new HashMap<>();
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
@@ -208,7 +213,9 @@ public class ExcelUtil {
         return map;
     }
 
-    /** 校验必填列是否存在 */
+    /**
+     * 校验必填列是否存在
+     */
     private static void validateProductHeaders(Map<Integer, String> columnIndexMap) {
         Set<String> fields = new HashSet<>(columnIndexMap.values());
         if (!fields.contains("name")) {
@@ -219,7 +226,9 @@ public class ExcelUtil {
         }
     }
 
-    /** 读取必填单元格，为空时抛出带行号的错误 */
+    /**
+     * 读取必填单元格，为空时抛出带行号的错误
+     */
     private static String readRequiredCell(Row row, Map<Integer, String> map, String field, int rowIdx) {
         String value = readCellByField(row, map, field);
         if (value == null || value.trim().isEmpty()) {
@@ -228,13 +237,17 @@ public class ExcelUtil {
         return value.trim();
     }
 
-    /** 读取可选单元格，为空时返回 null */
+    /**
+     * 读取可选单元格，为空时返回 null
+     */
     private static String readOptionalCell(Row row, Map<Integer, String> map, String field) {
         String value = readCellByField(row, map, field);
         return (value == null || value.trim().isEmpty()) ? null : value.trim();
     }
 
-    /** 根据字段名找到对应列索引，读取单元格值 */
+    /**
+     * 根据字段名找到对应列索引，读取单元格值
+     */
     private static String readCellByField(Row row, Map<Integer, String> map, String field) {
         for (Map.Entry<Integer, String> entry : map.entrySet()) {
             if (entry.getValue().equals(field)) {
@@ -251,7 +264,9 @@ public class ExcelUtil {
         return null;
     }
 
-    /** 解析 BigDecimal，失败时抛出带行号的错误 */
+    /**
+     * 解析 BigDecimal，失败时抛出带行号的错误
+     */
     private static BigDecimal parseDecimal(String value, int rowIdx, String fieldName) {
         try {
             return new BigDecimal(value);
@@ -260,7 +275,9 @@ public class ExcelUtil {
         }
     }
 
-    /** 解析 Integer，失败时抛出带行号的错误 */
+    /**
+     * 解析 Integer，失败时抛出带行号的错误
+     */
     private static Integer parseInteger(String value, int rowIdx, String fieldName) {
         try {
             return Integer.parseInt(value.contains(".") ? value.substring(0, value.indexOf('.')) : value);
@@ -269,7 +286,9 @@ public class ExcelUtil {
         }
     }
 
-    /** 解析上架状态：支持 1/0、true/false、上架/下架 */
+    /**
+     * 解析上架状态：支持 1/0、true/false、上架/下架
+     */
     private static Integer parseStatus(String value, int rowIdx) {
         String normalized = value.trim().toLowerCase();
         if ("1".equals(normalized) || "true".equals(normalized) || "上架".equals(normalized)) {
@@ -281,7 +300,9 @@ public class ExcelUtil {
         throw new IllegalArgumentException("第 " + (rowIdx + 1) + " 行上架状态无法识别：" + value + "（支持 1/0、上架/下架）");
     }
 
-    /** 判断是否为空行（所有单元格都为空） */
+    /**
+     * 判断是否为空行（所有单元格都为空）
+     */
     private static boolean isEmptyRow(Row row) {
         for (int i = row.getFirstCellNum(); i < row.getLastCellNum(); i++) {
             Cell cell = row.getCell(i);
@@ -293,7 +314,9 @@ public class ExcelUtil {
         return true;
     }
 
-    /** 规范化列头：去空格、转小写，支持灵活匹配 */
+    /**
+     * 规范化列头：去空格、转小写，支持灵活匹配
+     */
     private static String normalizeHeader(String header) {
         return header == null ? "" : header.trim().toLowerCase().replaceAll("\\s+", "");
     }

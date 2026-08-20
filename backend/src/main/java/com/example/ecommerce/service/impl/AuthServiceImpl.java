@@ -1,10 +1,10 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
 import com.example.ecommerce.dto.AuthResponse;
 import com.example.ecommerce.dto.RegisterRequest;
 import com.example.ecommerce.entity.User;
-import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.security.CustomUserDetails;
 import com.example.ecommerce.security.TokenService;
 import com.example.ecommerce.service.AuthService;
@@ -19,19 +19,19 @@ import org.springframework.stereotype.Service;
 
 /**
  * 认证服务实现类。
- *
+ * <p>
  * 职责：
  * - login：验证用户名密码，生成 Token
  * - register：注册新用户，生成 Token
  * - logout：撤销 Token
- *
+ * <p>
  * 依赖：
  * - UserMapper：查询/保存用户
  * - TokenService（security 包）：生成/验证/撤销 Token，Token 格式为 ECM.{rawToken}.{hmacSignature}
  * - BCryptPasswordEncoder：密码加密与验证
- *
+ * <p>
  * ⚠️ 本类属于第十一章 Security 模块，因为依赖 TokenService、CustomUserDetails、BCryptPasswordEncoder。
- *   第九章 Service 层和第十章 Controller 层不涉及认证逻辑，认证相关代码统一在第十一章引入。
+ * 第九章 Service 层和第十章 Controller 层不涉及认证逻辑，认证相关代码统一在第十一章引入。
  */
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * 用户登录：验证密码，生成 Token 返回。
-     *
+     * <p>
      * 流程：
      * 1. 根据用户名查询用户（用户名唯一）
      * 2. 校验用户是否存在
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
      * 6. 返回 Token + 用户信息
      */
     @Override
-    public AuthResponse login(String username,String password) {
+    public AuthResponse login(String username, String password) {
         // 1. 调用AuthenticationManager触发认证流程
         // 内部委托DaoAuthenticationProvider完成
         // 首先调用CustomUserDetailsService.loadUserByUsername加载用户详情
@@ -90,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * 用户注册：创建用户，生成 Token 返回。
-     *
+     * <p>
      * 流程：
      * 1. 检查用户名是否已存在
      * 2. 检查邮箱是否已注册
@@ -130,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * 用户登出：撤销 Token（删除 Redis 中的会话信息）。
-     *
+     * <p>
      * 流程：
      * 1. 调用 TokenService.revokeToken()
      * 2. 返回成功（即使 Token 已过期也不算错误）

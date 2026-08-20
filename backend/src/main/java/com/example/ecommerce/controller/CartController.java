@@ -28,11 +28,12 @@ public class CartController {
 
     /**
      * 获取购物车列表
+     *
      * @param authentication
      * @return
      */
     @GetMapping
-    public Result<List<CartItemResponse>> getCart(Authentication authentication){
+    public Result<List<CartItemResponse>> getCart(Authentication authentication) {
         // 获取当前登录用户的购物车
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         return Result.success(cartService.getCart(user.getId()));
@@ -40,13 +41,14 @@ public class CartController {
 
     /**
      * 加入购物车
+     *
      * @param request
      * @param authentication
      * @return
      */
     @PostMapping("/items")
     public Result<Void> addItem(@RequestBody CartItemRequest request,
-                                Authentication authentication){
+                                Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         cartService.addItem(user.getId(), request);
         return Result.success();
@@ -55,21 +57,21 @@ public class CartController {
     @PutMapping("/items/{id}")
     public Result<Void> updateItem(@PathVariable Long id,
                                    @RequestBody CartItemRequest request,
-                                   Authentication authentication){
+                                   Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         cartService.updateItem(user.getId(), id, request.getQuantity());
         return Result.success();
     }
 
     @DeleteMapping("/items/{id}")
-    public Result<Void> removeItem(@PathVariable Long id, Authentication authentication){
+    public Result<Void> removeItem(@PathVariable Long id, Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         cartService.removeItem(user.getId(), id);
         return Result.success();
     }
 
     @DeleteMapping
-    public Result<Void> clear(Authentication authentication){
+    public Result<Void> clear(Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         cartService.clear(user.getId());
         return Result.success();
@@ -77,7 +79,7 @@ public class CartController {
 
     @PostMapping("/checkout")
     public Result<OrderDetailResponse> checkout(@Valid @RequestBody CartCheckoutRequest request,
-                                                Authentication authentication){
+                                                Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         return Result.success(cartService.checkout(user.getId(), request));
     }

@@ -36,3 +36,13 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+
+# ========== Config ==========
+*.properties
+!**/application*.properties
+application-local.properties
+application-local.yml
+application-dev-local.properties
+application-prod-local.properties
+

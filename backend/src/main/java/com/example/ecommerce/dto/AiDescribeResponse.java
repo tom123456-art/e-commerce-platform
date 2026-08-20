@@ -28,9 +28,9 @@ import java.util.List;
  *
  * <p><b>为什么需要同时有 @Builder 和 @NoArgsConstructor？</b></p>
  * <p>Spring 的 Jackson 反序列化器（将 JSON 映射为 Java 对象）默认需要无参构造方法。
+ *
  * @Builder 会生成一个全参构造方法，反而覆盖了默认的无参构造，导致反序列化失败。
  * 因此需要显式加上 @NoArgsConstructor 来补回无参构造。</p>
- *
  * @see AiDescribeRequest 对应的AI文案生成请求DTO
  */
 @lombok.Data

@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.undo.AbstractUndoableEdit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,11 +25,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Result<UserDTO> getById(@PathVariable Long id, Authentication authentication){
-        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails){
-            CustomUserDetails currentUser
-                    = (CustomUserDetails) authentication.getPrincipal();
-            if (!currentUser.isAdmin() && !currentUser.getId().equals(id)){
+    public Result<UserDTO> getById(@PathVariable Long id, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails currentUser) {
+            if (!currentUser.isAdmin() && !currentUser.getId().equals(id)) {
                 return Result.failure(Result.FORBIDDEN_CODE, "无权限访问");
             }
         }
@@ -39,53 +36,58 @@ public class UserController {
 
     /**
      * 根据用户名获取用户信息
+     *
      * @param username
      * @return
      */
     @GetMapping("/username/{username}")
-    public Result<UserDTO> getByUsername(@PathVariable String username){
+    public Result<UserDTO> getByUsername(@PathVariable String username) {
         return Result.success(toUserDTO(userService.getUserByUsername(username)));
     }
 
     /**
      * 获取所有用户（仅 ADMIN）—— 管理后台用户管理页调用
+     *
      * @return
      */
     @GetMapping
-    public Result<List<UserDTO>> getAll(){
+    public Result<List<UserDTO>> getAll() {
         return Result.success(userService.getAll().stream()
                 .map(this::toUserDTO).collect(Collectors.toList()));
     }
 
     /**
      * 创建用户
+     *
      * @param user
      * @return
      */
     @PostMapping
-    public Result<Void> save(@Valid @RequestBody User user){
+    public Result<Void> save(@Valid @RequestBody User user) {
         userService.save(user);
         return Result.success();
     }
 
     /**
      * 更新用户信息
+     *
      * @param user
      * @return
      */
     @PutMapping
-    public Result<Void> update(@Valid @RequestBody User user){
+    public Result<Void> update(@Valid @RequestBody User user) {
         userService.updateUser(user);
         return Result.success();
     }
 
     /**
      * 删除用户（仅 ADMIN）—— 管理后台用户管理页调用
+     *
      * @param id
      * @return
      */
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id){
+    public Result<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return Result.success();
     }
@@ -93,6 +95,7 @@ public class UserController {
 
     /**
      * 把User实体类转换为UserDTO(排除密码字段)
+     *
      * @param user
      * @return
      */

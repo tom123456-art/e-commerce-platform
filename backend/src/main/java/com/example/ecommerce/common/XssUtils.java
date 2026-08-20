@@ -9,6 +9,7 @@ public class XssUtils {
 
     /**
      * 检测输入是否包含 XSS 攻击内容。
+     *
      * @param input 待检测的字符串
      * @return 包含 XSS 内容返回 true
      */

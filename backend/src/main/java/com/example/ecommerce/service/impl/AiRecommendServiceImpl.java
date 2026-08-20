@@ -54,6 +54,7 @@ public class AiRecommendServiceImpl extends AbstractAiService implements AiRecom
 
     /**
      * 降级推荐：预算优先过滤+类别偏好过滤+关键词相关度评分过滤
+     *
      * @param request
      * @return
      */
@@ -70,18 +71,17 @@ public class AiRecommendServiceImpl extends AbstractAiService implements AiRecom
                 p -> { // 过滤条件
                     if (budget != null && p.getPrice() != null && p.getPrice().compareTo(budget) > 0)
                         return false; // 超出预算
-                    if (StringUtils.hasText(categoryPreference)){
+                    if (StringUtils.hasText(categoryPreference)) {
                         // 如果有类别偏好，则过滤掉不匹配的商品
                         // 获取商品类别标签
                         String label =
                                 CATEGORY_LABELS.getOrDefault(p.getCategoryId(), "");
-                        if (!label.contains(categoryPreference) && !categoryPreference.contains(label))
-                            return false; // 双向不匹配的话就排除掉
+                        return label.contains(categoryPreference) || categoryPreference.contains(label); // 双向不匹配的话就排除掉
                     }
                     return true; // 保留该商品
                 }).sorted(
-                        // 按照相关度评分排序
-                        Comparator.comparingInt(p -> calculateRelevance(p, query))
+                // 按照相关度评分排序
+                Comparator.comparingInt(p -> calculateRelevance(p, query))
         ).limit(5).map(
                 // 映射为推荐项
                 p -> {
@@ -94,6 +94,7 @@ public class AiRecommendServiceImpl extends AbstractAiService implements AiRecom
 
     /**
      * 构建降级推荐理由文本
+     *
      * @param p
      * @param query
      * @return
@@ -109,17 +110,18 @@ public class AiRecommendServiceImpl extends AbstractAiService implements AiRecom
     /**
      * 计算商品和查询的商品的相关度，返回惩罚值，越小越相关
      * 每当命中一个关键词分数+20（惩罚-20）
+     *
      * @param product 商品
-     * @param query 查询
+     * @param query   查询
      * @return
      */
     private int calculateRelevance(Product product, String query) {
         // 初始化惩罚值
         int penalty = 0;
         // 分词
-        for (String word : query.split("[\\s,，、]+")){
+        for (String word : query.split("[\\s,，、]+")) {
             if (word.length() < 2) continue; // 跳过单个字符
-            if (tokenMatches(product, word)){
+            if (tokenMatches(product, word)) {
                 penalty -= 20; // 越负越相关
             }
         }
@@ -128,9 +130,10 @@ public class AiRecommendServiceImpl extends AbstractAiService implements AiRecom
 
     /**
      * AI推荐
-     * @param query 查询文本
-     * @param budget 预算
-     * @param categoryPreference  类别偏好
+     *
+     * @param query              查询文本
+     * @param budget             预算
+     * @param categoryPreference 类别偏好
      * @return
      */
     private List<AiRecommendItem> doAiRecommend(String query, BigDecimal budget, String categoryPreference) {

@@ -45,9 +45,13 @@ public class PaymentServiceImpl implements PaymentService {
     private static final DateTimeFormatter ALIPAY_TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
-    /** Mock 回调允许的 IP 白名单（仅本机回环） */
+    /**
+     * Mock 回调允许的 IP 白名单（仅本机回环）
+     */
     private static final String[] MOCK_ALLOWED_IPS = {"127.0.0.1", "0:0:0:0:0:0:0:1", "::1"};
-    /** Mock 回调内部调用标识 Header */
+    /**
+     * Mock 回调内部调用标识 Header
+     */
     private static final String MOCK_INTERNAL_HEADER = "X-Mock-Internal-Call";
 
     private final AlipayProperties alipayProperties;
@@ -59,17 +63,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     /**
      * 自注入代理对象（Self-Injection），用于解决 Spring AOP 自调用失效问题。
-     *
+     * <p>
      * 【为什么需要 self？】
-     *   handleCallback() 中的 try-finally 调用 createCallbackLog() / updateCallbackLog()，
-     *   如果直接用 this.createCallbackLog()（自调用），Spring AOP 代理不生效，
-     *   @Transactional(propagation = REQUIRES_NEW) 注解会被忽略，审计日志仍与主事务绑定。
-     *   通过注入自身代理对象 self，调用 self.createCallbackLog() 走代理，REQUIRES_NEW 才能生效。
+     * handleCallback() 中的 try-finally 调用 createCallbackLog() / updateCallbackLog()，
+     * 如果直接用 this.createCallbackLog()（自调用），Spring AOP 代理不生效，
      *
+     * @Transactional(propagation = REQUIRES_NEW) 注解会被忽略，审计日志仍与主事务绑定。
+     * 通过注入自身代理对象 self，调用 self.createCallbackLog() 走代理，REQUIRES_NEW 才能生效。
+     * <p>
      * 【为什么用 @Lazy？】
-     *   PaymentServiceImpl 在构造时注入 PaymentService（即自身），会形成循环依赖：
-     *   "我创建时需要我自己"。@Lazy 延迟注入：构造时注入一个代理占位符，
-     *   首次实际调用时才从容器中解析真正的 Bean，打破启动期的循环依赖。
+     * PaymentServiceImpl 在构造时注入 PaymentService（即自身），会形成循环依赖：
+     * "我创建时需要我自己"。@Lazy 延迟注入：构造时注入一个代理占位符，
+     * 首次实际调用时才从容器中解析真正的 Bean，打破启动期的循环依赖。
      */
     // ┌────────────────────────────────────────────────────────── ── ── ──
     // │ 🔵 修改点1 [重构]：新增 self 自注入字段
@@ -95,14 +100,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     /**
      * 【创建支付】根据配置选择真实支付宝或 Mock 模式。
-     *
+     * <p>
      * 决策优先级：
-     *   1. 真实支付宝参数齐全 → 生成签名 URL（用户跳转到支付宝收银台）
-     *   2. mockEnabled=true → 生成 Mock 支付 URL（跳转到本地 /api/payment/mock/success）
-     *   3. 两者都不满足 → 抛异常提示配置
+     * 1. 真实支付宝参数齐全 → 生成签名 URL（用户跳转到支付宝收银台）
+     * 2. mockEnabled=true → 生成 Mock 支付 URL（跳转到本地 /api/payment/mock/success）
+     * 3. 两者都不满足 → 抛异常提示配置
      *
-     * @param orderNo    本系统订单号（同接口定义）。实现里先用它查出 Order，校验订单存在并取订单金额。
-     * @param amount     前端传入的支付金额（可空）。实现里交给 resolvePaymentAmount 与订单金额比对，防篡改。
+     * @param orderNo     本系统订单号（同接口定义）。实现里先用它查出 Order，校验订单存在并取订单金额。
+     * @param amount      前端传入的支付金额（可空）。实现里交给 resolvePaymentAmount 与订单金额比对，防篡改。
      * @param description 收银台展示的订单标题（可空）。实现里为空时用 "Order Payment-{orderNo}" 兜底。
      */
     @Override
@@ -127,18 +132,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     /**
      * 【支付宝异步回调】支付流程的终点。
-     *
+     * <p>
      * 处理流程：
-     *   1. 提取关键参数（订单号、交易号、状态）
-     *   2. 创建审计日志（初始状态：未验证、未处理、未成功）
-     *   3. 验签：真实模式用 AlipaySignatureUtils.verify，Mock 模式用 IP+Header 校验
-     *   4. 金额校验：回调金额必须与订单金额一致
-     *   5. 幂等性：已支付的订单不重复更新
-     *   6. 更新订单状态为已支付
-     *   7. 记录商品销售指标（首次支付成功）
-     *   8. 发送支付状态 MQ 事件
-     *   9. 更新审计日志（无论成功失败都记录）
-     *
+     * 1. 提取关键参数（订单号、交易号、状态）
+     * 2. 创建审计日志（初始状态：未验证、未处理、未成功）
+     * 3. 验签：真实模式用 AlipaySignatureUtils.verify，Mock 模式用 IP+Header 校验
+     * 4. 金额校验：回调金额必须与订单金额一致
+     * 5. 幂等性：已支付的订单不重复更新
+     * 6. 更新订单状态为已支付
+     * 7. 记录商品销售指标（首次支付成功）
+     * 8. 发送支付状态 MQ 事件
+     * 9. 更新审计日志（无论成功失败都记录）
+     * <p>
      * 【返回值】true 返回 "success" 给支付宝（停止重试），false 返回 "failure"（25h 内重试 8 次）
      *
      * @param callbackParams 支付宝异步回调的原始参数 Map（同接口定义）。
@@ -267,6 +272,11 @@ public class PaymentServiceImpl implements PaymentService {
             success = tradeSuccessful;
             // Mock 模式下也用 self 代理独立落库审计日志（REQUIRES_NEW），保证日志与主事务解耦
             self.updateCallbackLog(cbLog, true, true, success, null);
+            // [FIX] 与真实支付宝回调路径对齐：模拟支付成功后同样发布"支付状态"事件，
+            // 否则 Mock 模式下 payment-status 队列永远收不到消息，消费者形同虚设。
+            if (orderNo != null) {
+                orderMessagePublisher.publishPaymentStatus(orderNo, tradeStatus, success);
+            }
             return success;
         } catch (Exception ex) {
             self.updateCallbackLog(cbLog, true, true, false, ex.getMessage());
@@ -282,11 +292,12 @@ public class PaymentServiceImpl implements PaymentService {
     // │ 文档写法：public + @Override + @Transactional(propagation = REQUIRES_NEW)
     // │ 修改原因：提升为接口契约的 public 方法，配合 self 代理调用激活 REQUIRES_NEW 独立事务
     // └────────────────────────────────────────────────────────── ── ── ──
+
     /**
      * 创建审计日志（初始状态：未验证、未处理、未成功）。
      * 参数含义与"为什么传"与接口 {@link PaymentService#createCallbackLog} 一致，此处实现负责真正落库：
-     *   - orderNo/tradeNo/tradeStatus 写入对应列，建立订单与支付宝交易的对照
-     *   - params 整体序列化为 rawPayload 存库，保留回调原始全量字段用于取证
+     * - orderNo/tradeNo/tradeStatus 写入对应列，建立订单与支付宝交易的对照
+     * - params 整体序列化为 rawPayload 存库，保留回调原始全量字段用于取证
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -314,6 +325,7 @@ public class PaymentServiceImpl implements PaymentService {
     // │ 文档写法：public + @Override + @Transactional(propagation = REQUIRES_NEW)
     // │ 修改原因：提升为接口契约的 public 方法，配合 self 代理调用激活 REQUIRES_NEW 独立事务
     // └────────────────────────────────────────────────────────── ── ── ──
+
     /**
      * 更新审计日志（处理结果）。
      * 参数含义与"为什么传"与接口 {@link PaymentService#updateCallbackLog} 一致，此处实现负责把
@@ -394,8 +406,8 @@ public class PaymentServiceImpl implements PaymentService {
     /**
      * 校验"前端传入的支付金额"与"订单实际金额"一致（创建支付环节，防前端篡改少付）。
      *
-     * @param order            已查出的订单对象，用于取订单实际金额 order.getTotalAmount()。
-     * @param requestedAmount  前端传入的支付金额（可空）。为空说明前端信任订单金额，直接放行。
+     * @param order           已查出的订单对象，用于取订单实际金额 order.getTotalAmount()。
+     * @param requestedAmount 前端传入的支付金额（可空）。为空说明前端信任订单金额，直接放行。
      * @return 订单实际金额（始终以订单金额为准，忽略前端的金额参与后续签名/跳转）。
      */
     private BigDecimal resolvePaymentAmount(Order order, BigDecimal requestedAmount) {
@@ -427,7 +439,9 @@ public class PaymentServiceImpl implements PaymentService {
         return order;
     }
 
-    /** Mock 回调安全校验：IP 白名单 + 内部调用标识 */
+    /**
+     * Mock 回调安全校验：IP 白名单 + 内部调用标识
+     */
     private boolean isMockCallbackAllowed() {
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attrs == null ? null : attrs.getRequest();
@@ -437,7 +451,10 @@ public class PaymentServiceImpl implements PaymentService {
         boolean ipAllowed = false;
         if (clientIp != null) {
             for (String allowed : MOCK_ALLOWED_IPS) {
-                if (allowed.equals(clientIp)) { ipAllowed = true; break; }
+                if (allowed.equals(clientIp)) {
+                    ipAllowed = true;
+                    break;
+                }
             }
         }
         boolean headerValid = "true".equalsIgnoreCase(internalHeader);
@@ -469,13 +486,21 @@ public class PaymentServiceImpl implements PaymentService {
      */
     private String urlEncode(String value) {
         try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replace("+", "%20");
+            return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
         } catch (Exception ex) {
             throw new IllegalStateException("UTF-8 is not supported", ex);
         }
     }
 
-    private boolean hasText(String v) { return v != null && !v.trim().isEmpty(); }
-    private boolean isPaidStatus(Integer s) { return s != null && s >= 1; }
-    private String firstNonEmpty(String a, String b) { return hasText(a) ? a : b; }
+    private boolean hasText(String v) {
+        return v != null && !v.trim().isEmpty();
+    }
+
+    private boolean isPaidStatus(Integer s) {
+        return s != null && s >= 1;
+    }
+
+    private String firstNonEmpty(String a, String b) {
+        return hasText(a) ? a : b;
+    }
 }

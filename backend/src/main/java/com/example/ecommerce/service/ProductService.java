@@ -2,7 +2,6 @@ package com.example.ecommerce.service;
 
 
 import com.example.ecommerce.common.PagedResponse;
-import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
@@ -10,10 +9,10 @@ import com.example.ecommerce.entity.Product;
 import java.util.List;
 
 /**
-* @author waqwb
-* @description 针对表【product】的数据库操作Service
-* @createDate 2026-07-31 09:50:13
-*/
+ * @author waqwb
+ * @description 针对表【product】的数据库操作Service
+ * @createDate 2026-07-31 09:50:13
+ */
 public interface ProductService {
     /* 缓存预热，当应用启动的时候，会将热门商品加载到Redis中，避免缓存穿透 */
     void warmUpCache();
@@ -48,10 +47,5 @@ public interface ProductService {
 
     /* 批量导入商品，返回成功导入的记录数 */
     int importProducts(List<Product> products);
-
-    /**
-     * 查询商品详情 DTO
-     */
-    ProductDetailResponse getDetailById(Long id);
 
 }

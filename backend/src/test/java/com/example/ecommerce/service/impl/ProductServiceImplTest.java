@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
+    private final ObjectMapper objectMapper = new ObjectMapper();
     // 模拟数据库访问
     @Mock
     private ProductMapper productMapper;
@@ -31,11 +32,9 @@ class ProductServiceImplTest {
     @InjectMocks
     private ProductServiceImpl productService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     /*
-    * 缓存命中->直接返回缓存数据，不查数据库
-    * */
+     * 缓存命中->直接返回缓存数据，不查数据库
+     * */
     @Test
     void getByIdReadsFromCacheBeforeDatabase() throws JsonProcessingException {
         Product product = new Product();

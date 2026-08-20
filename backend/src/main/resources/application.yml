@@ -83,8 +83,8 @@ ecommerce:
     admin-username: admin # 后台默认管理员账号
   # RabbitMQ消息队列配置
   rabbit:
-    enabled: false # 消息队列总开关，后续需要时改为 true
-    listener-enabled: false        # 开发环境默认关闭消息消费者监听，避免本地重复消费
+    enabled: true # 消息队列总开关：true 启用
+    listener-enabled: true        # 开发环境开启消息消费者监听
     exchange: ecommerce.event.exchange # 业务事件主交换机名称
     retry-exchange: ecommerce.event.retry.exchange # 消息重试交换机
     dead-letter-exchange: ecommerce.event.dead-letter.exchange # 死信交换机，存放处理失败消息

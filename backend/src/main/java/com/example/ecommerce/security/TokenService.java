@@ -22,16 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 自定义 Token 认证服务（核心安全组件）。
- *
+ * <p>
  * Token 格式：ECM.{rawToken}.{hmacSignature}
  * - ECM：固定前缀（E-Commerce Mall 缩写）
  * - rawToken：32 位十六进制随机字符串（UUID 去连字符）
  * - hmacSignature：HMAC-SHA256 签名的 Base64Url 编码
- *
+ * <p>
  * 双层缓存策略：
- *   一级缓存：本地 ConcurrentHashMap（JVM 内存）
- *   二级缓存：Redis（网络调用）
- *
+ * 一级缓存：本地 ConcurrentHashMap（JVM 内存）
+ * 二级缓存：Redis（网络调用）
+ * <p>
  * 📋 复制粘贴文件：从 03-code/security/ 或 02-code/11-Security/ 复制到项目中 security/ 目录。
  * 完整逐行注释见 [03-用户认证模块 §1.2.4](03-用户认证模块.md)。
  */
@@ -68,8 +68,8 @@ public class TokenService {
         cleanupExpiredLocalSessions();
         String rawToken = UUID.randomUUID().toString().replace("-", "");
         SessionSnapshot snapshot = new SessionSnapshot(
-            userDetails.getId(), userDetails.getUsername(),
-            Instant.now().plusSeconds(tokenExpireSeconds).toEpochMilli()
+                userDetails.getId(), userDetails.getUsername(),
+                Instant.now().plusSeconds(tokenExpireSeconds).toEpochMilli()
         );
         storeSession(rawToken, snapshot);
         String signature = computeHmac(rawToken);
@@ -82,7 +82,7 @@ public class TokenService {
         String normalizedToken = token.trim();
         if (!normalizedToken.startsWith(TOKEN_PREFIX + ".")) {
             log.warn("[安全告警] 收到无前缀的伪造Token尝试: {}",
-                normalizedToken.substring(0, Math.min(normalizedToken.length(), 20)));
+                    normalizedToken.substring(0, Math.min(normalizedToken.length(), 20)));
             return null;
         }
 
@@ -137,7 +137,7 @@ public class TokenService {
         localSessions.put(token, snapshot);
         try {
             redisUtil.set(buildTokenKey(token),
-                objectMapper.writeValueAsString(snapshot), tokenExpireSeconds);
+                    objectMapper.writeValueAsString(snapshot), tokenExpireSeconds);
         } catch (Exception ex) {
             log.warn("Failed to store token in Redis: {}", ex.getMessage());
         }
@@ -188,18 +188,37 @@ public class TokenService {
         private String username;
         private long expireAt;
 
-        public SessionSnapshot() {}
+        public SessionSnapshot() {
+        }
+
         public SessionSnapshot(Long userId, String username, long expireAt) {
             this.userId = userId;
             this.username = username;
             this.expireAt = expireAt;
         }
 
-        public Long getUserId() { return userId; }
-        public void setUserId(Long userId) { this.userId = userId; }
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public long getExpireAt() { return expireAt; }
-        public void setExpireAt(long expireAt) { this.expireAt = expireAt; }
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public long getExpireAt() {
+            return expireAt;
+        }
+
+        public void setExpireAt(long expireAt) {
+            this.expireAt = expireAt;
+        }
     }
 }

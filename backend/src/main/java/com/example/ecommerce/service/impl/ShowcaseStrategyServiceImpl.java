@@ -4,7 +4,6 @@ import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.Result;
 import com.example.ecommerce.config.ShowcaseProperties;
 import com.example.ecommerce.config.ShowcaseSchemaSupport;
-import com.example.ecommerce.dto.ShowcaseDailyMetricItem;
 import com.example.ecommerce.dto.ShowcaseMetricSummary;
 import com.example.ecommerce.dto.ShowcaseStrategyRequest;
 import com.example.ecommerce.dto.ShowcaseStrategyResponse;
@@ -16,13 +15,13 @@ import com.example.ecommerce.service.ProductMetricService;
 import com.example.ecommerce.service.ShowcaseStrategyService;
 import com.example.ecommerce.utils.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
@@ -70,10 +69,10 @@ import java.util.List;
  * 购物车偏好权重（cartPreferenceWeight）：单独一个 0-1 的值
  * </pre>
  *
+ * @author ecommerce-team
  * @see ShowcaseStrategyService 展示策略服务接口定义
  * @see ShowcaseProperties 展示策略配置属性
  * @see ProductMetricService 商品指标服务（提供数据支撑）
- * @author ecommerce-team
  * @since 1.0.0
  */
 @Service
@@ -81,15 +80,25 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
     private static final Logger log = LoggerFactory.getLogger(ShowcaseStrategyServiceImpl.class);
 
-    /** 手动模式标识 */
+    /**
+     * 手动模式标识
+     */
     private static final String MODE_MANUAL = "MANUAL";
-    /** 自动模式标识 */
+    /**
+     * 自动模式标识
+     */
     private static final String MODE_AUTO = "AUTO";
-    /** 默认短期窗口（天） */
+    /**
+     * 默认短期窗口（天）
+     */
     private static final int DEFAULT_SHORT_WINDOW = 7;
-    /** 默认长期窗口（天） */
+    /**
+     * 默认长期窗口（天）
+     */
     private static final int DEFAULT_LONG_WINDOW = 30;
-    /** EMA 平滑系数（0-1，越大越激进） */
+    /**
+     * EMA 平滑系数（0-1，越大越激进）
+     */
     private static final double AUTO_BLEND_ALPHA = 0.35D;
 
     private final ShowcaseSchemaSupport showcaseSchemaSupport;
@@ -176,9 +185,9 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
         // 参数校验
         int shortWindowDays = validateShortWindow(resolveOrDefault(
-            safeRequest.getShortWindowDays(), config.getShortWindowDays(), DEFAULT_SHORT_WINDOW));
+                safeRequest.getShortWindowDays(), config.getShortWindowDays(), DEFAULT_SHORT_WINDOW));
         int longWindowDays = validateLongWindow(resolveOrDefault(
-            safeRequest.getLongWindowDays(), config.getLongWindowDays(), DEFAULT_LONG_WINDOW), shortWindowDays);
+                safeRequest.getLongWindowDays(), config.getLongWindowDays(), DEFAULT_LONG_WINDOW), shortWindowDays);
         String mode = normalizeMode(safeRequest.getMode(), config.getMode());
 
         config.setMode(mode);
@@ -207,7 +216,7 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
         ShowcaseStrategyConfig current = loadOrCreateConfig();
         if (!MODE_AUTO.equalsIgnoreCase(current.getMode())) {
             throw new BusinessException(Result.BAD_REQUEST_CODE,
-                "Automatic tuning is only available in AUTO mode");
+                    "Automatic tuning is only available in AUTO mode");
         }
         return autoTuneInternal(true);
     }
@@ -274,8 +283,8 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
         // 调优 cartPreferenceWeight（限定在 [0.30, 0.85]）
         showcaseProperties.setCartPreferenceWeight(clamp(
-            blend(showcaseProperties.getCartPreferenceWeight(), targetCartPreference(signals), AUTO_BLEND_ALPHA),
-            0.30D, 0.85D
+                blend(showcaseProperties.getCartPreferenceWeight(), targetCartPreference(signals), AUTO_BLEND_ALPHA),
+                0.30D, 0.85D
         ));
 
         // 持久化调优后的配置
@@ -305,9 +314,9 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
         showcaseProperties.setPersonalized(personalized);
         showcaseProperties.setHotSignal(hotSignal);
         showcaseProperties.setCartPreferenceWeight(validateCartPreferenceWeight(
-            resolveOrDefault(request.getCartPreferenceWeight(),
-                config.getCartPreferenceWeight() == null ? showcaseProperties.getCartPreferenceWeight() : config.getCartPreferenceWeight().doubleValue(),
-                showcaseProperties.getCartPreferenceWeight())
+                resolveOrDefault(request.getCartPreferenceWeight(),
+                        config.getCartPreferenceWeight() == null ? showcaseProperties.getCartPreferenceWeight() : config.getCartPreferenceWeight().doubleValue(),
+                        showcaseProperties.getCartPreferenceWeight())
         ));
     }
 
@@ -353,20 +362,20 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
      */
     private void tuneHotWeights(AutoSignals signals) {
         double[] tuned = blendAndNormalize(
-            new double[]{
-                showcaseProperties.getHot().getSales(),
-                showcaseProperties.getHot().getRevenue(),
-                showcaseProperties.getHot().getOrders(),
-                showcaseProperties.getHot().getFreshness(),
-                showcaseProperties.getHot().getInventory()
-            },
-            new double[]{
-                0.35D + 0.30D * signals.salesMomentum + 0.08D * signals.cartMomentum,
-                0.18D + 0.22D * signals.revenueMomentum + 0.08D * signals.paymentRate,
-                0.18D + 0.22D * signals.orderMomentum + 0.08D * signals.cartPaymentRate,
-                0.12D + 0.22D * signals.viewMomentum,
-                0.08D + 0.20D * signals.inventoryHealth
-            }
+                new double[]{
+                        showcaseProperties.getHot().getSales(),
+                        showcaseProperties.getHot().getRevenue(),
+                        showcaseProperties.getHot().getOrders(),
+                        showcaseProperties.getHot().getFreshness(),
+                        showcaseProperties.getHot().getInventory()
+                },
+                new double[]{
+                        0.35D + 0.30D * signals.salesMomentum + 0.08D * signals.cartMomentum,
+                        0.18D + 0.22D * signals.revenueMomentum + 0.08D * signals.paymentRate,
+                        0.18D + 0.22D * signals.orderMomentum + 0.08D * signals.cartPaymentRate,
+                        0.12D + 0.22D * signals.viewMomentum,
+                        0.08D + 0.20D * signals.inventoryHealth
+                }
         );
         ShowcaseProperties.HotWeights hot = new ShowcaseProperties.HotWeights();
         hot.setSales(tuned[0]);
@@ -379,18 +388,18 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
     private void tuneAnonymousWeights(AutoSignals signals) {
         double[] tuned = blendAndNormalize(
-            new double[]{
-                showcaseProperties.getAnonymous().getHot(),
-                showcaseProperties.getAnonymous().getFreshness(),
-                showcaseProperties.getAnonymous().getInventory(),
-                showcaseProperties.getAnonymous().getAffordability()
-            },
-            new double[]{
-                0.35D + 0.22D * signals.viewMomentum + 0.18D * signals.salesMomentum,
-                0.20D + 0.24D * signals.viewMomentum,
-                0.15D + 0.20D * signals.inventoryHealth,
-                0.10D + 0.18D * (1D - signals.paymentRate) + 0.10D * (1D - signals.cartPaymentRate)
-            }
+                new double[]{
+                        showcaseProperties.getAnonymous().getHot(),
+                        showcaseProperties.getAnonymous().getFreshness(),
+                        showcaseProperties.getAnonymous().getInventory(),
+                        showcaseProperties.getAnonymous().getAffordability()
+                },
+                new double[]{
+                        0.35D + 0.22D * signals.viewMomentum + 0.18D * signals.salesMomentum,
+                        0.20D + 0.24D * signals.viewMomentum,
+                        0.15D + 0.20D * signals.inventoryHealth,
+                        0.10D + 0.18D * (1D - signals.paymentRate) + 0.10D * (1D - signals.cartPaymentRate)
+                }
         );
         ShowcaseProperties.AnonymousWeights anonymous = new ShowcaseProperties.AnonymousWeights();
         anonymous.setHot(tuned[0]);
@@ -402,20 +411,20 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
     private void tunePersonalizedWeights(AutoSignals signals) {
         double[] tuned = blendAndNormalize(
-            new double[]{
-                showcaseProperties.getPersonalized().getCategory(),
-                showcaseProperties.getPersonalized().getHot(),
-                showcaseProperties.getPersonalized().getPrice(),
-                showcaseProperties.getPersonalized().getFreshness(),
-                showcaseProperties.getPersonalized().getInventory()
-            },
-            new double[]{
-                0.35D + 0.25D * signals.viewToCartRate + 0.10D * signals.cartMomentum,
-                0.20D + 0.25D * signals.salesMomentum + 0.10D * signals.viewMomentum,
-                0.10D + 0.18D * (1D - signals.paymentRate),
-                0.10D + 0.18D * signals.viewMomentum,
-                0.05D + 0.18D * signals.inventoryHealth
-            }
+                new double[]{
+                        showcaseProperties.getPersonalized().getCategory(),
+                        showcaseProperties.getPersonalized().getHot(),
+                        showcaseProperties.getPersonalized().getPrice(),
+                        showcaseProperties.getPersonalized().getFreshness(),
+                        showcaseProperties.getPersonalized().getInventory()
+                },
+                new double[]{
+                        0.35D + 0.25D * signals.viewToCartRate + 0.10D * signals.cartMomentum,
+                        0.20D + 0.25D * signals.salesMomentum + 0.10D * signals.viewMomentum,
+                        0.10D + 0.18D * (1D - signals.paymentRate),
+                        0.10D + 0.18D * signals.viewMomentum,
+                        0.05D + 0.18D * signals.inventoryHealth
+                }
         );
         ShowcaseProperties.PersonalizedWeights personalized = new ShowcaseProperties.PersonalizedWeights();
         personalized.setCategory(tuned[0]);
@@ -428,18 +437,18 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
     private void tuneHotSignalWeights(AutoSignals signals) {
         double[] tuned = blendAndNormalize(
-            new double[]{
-                showcaseProperties.getHotSignal().getSales(),
-                showcaseProperties.getHotSignal().getRevenue(),
-                showcaseProperties.getHotSignal().getOrders(),
-                showcaseProperties.getHotSignal().getFreshness()
-            },
-            new double[]{
-                0.35D + 0.30D * signals.salesMomentum,
-                0.20D + 0.22D * signals.revenueMomentum + 0.06D * signals.paymentRate,
-                0.20D + 0.24D * signals.orderMomentum + 0.06D * signals.cartPaymentRate,
-                0.10D + 0.24D * signals.viewMomentum
-            }
+                new double[]{
+                        showcaseProperties.getHotSignal().getSales(),
+                        showcaseProperties.getHotSignal().getRevenue(),
+                        showcaseProperties.getHotSignal().getOrders(),
+                        showcaseProperties.getHotSignal().getFreshness()
+                },
+                new double[]{
+                        0.35D + 0.30D * signals.salesMomentum,
+                        0.20D + 0.22D * signals.revenueMomentum + 0.06D * signals.paymentRate,
+                        0.20D + 0.24D * signals.orderMomentum + 0.06D * signals.cartPaymentRate,
+                        0.10D + 0.24D * signals.viewMomentum
+                }
         );
         ShowcaseProperties.HotSignalWeights hotSignal = new ShowcaseProperties.HotSignalWeights();
         hotSignal.setSales(tuned[0]);
@@ -451,8 +460,8 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
 
     private double targetCartPreference(AutoSignals signals) {
         return clamp(
-            0.35D + 0.20D * signals.viewToCartRate + 0.25D * signals.cartPaymentRate + 0.10D * signals.salesMomentum,
-            0.30D, 0.85D
+                0.35D + 0.20D * signals.viewToCartRate + 0.25D * signals.cartPaymentRate + 0.10D * signals.salesMomentum,
+                0.30D, 0.85D
         );
     }
 
@@ -525,7 +534,7 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
             return 0L;
         }
         return safeLong(summary.getViewCount()) + safeLong(summary.getCartAddCount())
-            + safeLong(summary.getPaidOrderCount()) + safeLong(summary.getPaidQuantity());
+                + safeLong(summary.getPaidOrderCount()) + safeLong(summary.getPaidQuantity());
     }
 
     // ==================== 配置管理 ====================
@@ -587,7 +596,7 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
         showcaseProperties.setPersonalized(normalizePersonalizedWeights(readJson(config.getPersonalizedWeightsJson(), ShowcaseProperties.PersonalizedWeights.class), showcaseProperties.getPersonalized()));
         showcaseProperties.setHotSignal(normalizeHotSignalWeights(readJson(config.getHotSignalWeightsJson(), ShowcaseProperties.HotSignalWeights.class), showcaseProperties.getHotSignal()));
         showcaseProperties.setCartPreferenceWeight(validateCartPreferenceWeight(
-            config.getCartPreferenceWeight() == null ? showcaseProperties.getCartPreferenceWeight() : config.getCartPreferenceWeight().doubleValue()
+                config.getCartPreferenceWeight() == null ? showcaseProperties.getCartPreferenceWeight() : config.getCartPreferenceWeight().doubleValue()
         ));
     }
 
@@ -762,12 +771,16 @@ public class ShowcaseStrategyServiceImpl implements ShowcaseStrategyService {
         return fallback;
     }
 
-    /** EMA 混合：result = current * (1-alpha) + target * alpha */
+    /**
+     * EMA 混合：result = current * (1-alpha) + target * alpha
+     */
     private double blend(double current, double target, double alpha) {
         return current * (1D - alpha) + target * alpha;
     }
 
-    /** 动量分数：短期/长期比值，范围 [0, 1] */
+    /**
+     * 动量分数：短期/长期比值，范围 [0, 1]
+     */
     private double momentumScore(double shortPerDay, double longPerDay) {
         if (shortPerDay <= 0D && longPerDay <= 0D) {
             return 0.50D;

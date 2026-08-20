@@ -41,19 +41,34 @@ public class DashboardChartItem {
      */
     private Double value;
 
-    /** 无参构造（JSON 反序列化需要） */
+    /**
+     * 无参构造（JSON 反序列化需要）
+     */
     public DashboardChartItem() {
     }
 
-    /** 全参构造（方便 Service 层构造） */
+    /**
+     * 全参构造（方便 Service 层构造）
+     */
     public DashboardChartItem(String label, Double value) {
         this.label = label;
         this.value = value;
     }
 
     // Getter / Setter 省略...
-    public String getLabel() { return label; }
-    public void setLabel(String label) { this.label = label; }
-    public Double getValue() { return value; }
-    public void setValue(Double value) { this.value = value; }
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public Double getValue() {
+        return value;
+    }
+
+    public void setValue(Double value) {
+        this.value = value;
+    }
 }

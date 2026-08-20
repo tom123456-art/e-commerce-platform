@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -39,7 +38,7 @@ class OrderItemMapperTest {
     }
 
     @Test
-    void selectAll(){
+    void selectAll() {
         orderItemMapper.insert(orderItem);
         List<OrderItem> orderItems = orderItemMapper.selectAll();
         for (OrderItem orderItem : orderItems)
@@ -47,7 +46,7 @@ class OrderItemMapperTest {
     }
 
     @Test
-    void batchInsert(){
+    void batchInsert() {
         OrderItem orderItem1 = new OrderItem();
         orderItem1.setOrderId(1L);
         orderItem1.setProductId(2L);

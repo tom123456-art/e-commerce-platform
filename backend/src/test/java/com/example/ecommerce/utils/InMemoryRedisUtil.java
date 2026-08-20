@@ -82,7 +82,9 @@ public class InMemoryRedisUtil extends RedisUtil {
         return counters.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
     }
 
-    /** 简易 glob 匹配：支持单个 '*' 作为前缀/后缀通配符 */
+    /**
+     * 简易 glob 匹配：支持单个 '*' 作为前缀/后缀通配符
+     */
     private boolean matches(String key, String pattern) {
         if (pattern == null) {
             return false;

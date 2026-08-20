@@ -32,6 +32,7 @@ public class OrderController {
      * 获取订单列表
      * 管理员可以查看全部订单
      * 普通用户只可以查看自己的订单
+     *
      * @param authentication
      * @return
      */
@@ -49,7 +50,7 @@ public class OrderController {
      * 根据ID获取订单
      */
     @GetMapping("/{id}")
-    public Result<Order> getById(@PathVariable Long id, Authentication authentication){
+    public Result<Order> getById(@PathVariable Long id, Authentication authentication) {
         Order order = orderService.getById(id);
         // 越权检查，用户只能查看自己的订单，管理员是可以查看所有订单的
         assertOrderAccess(authentication, order);
@@ -61,7 +62,7 @@ public class OrderController {
      */
     @GetMapping("/{id}/detail")
     public Result<OrderDetailResponse> getDetail(@PathVariable Long id,
-                                                 Authentication authentication){
+                                                 Authentication authentication) {
         // [FIX-B] 清理冗余判断：service 层查不到会直接抛 NOT_FOUND，这里增加显式防御避免返回 success(null)
         OrderDetailResponse detailById = orderService.getDetailById(id);
         if (detailById == null || detailById.getOrder() == null)
@@ -75,7 +76,7 @@ public class OrderController {
      */
     @GetMapping("/orderNo/{orderNo}")
     public Result<Order> getByOrderNo(@PathVariable String orderNo,
-                                      Authentication authentication){
+                                      Authentication authentication) {
         Order order = orderService.getByOrderNo(orderNo);
         assertOrderAccess(authentication, order);
         return Result.success(order);
@@ -87,7 +88,7 @@ public class OrderController {
      */
     @GetMapping("/user/{userId}")
     public Result<List<Order>> getByUserId(@PathVariable Long userId,
-                                           Authentication authentication){
+                                           Authentication authentication) {
         // 获取当前登录的用户
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         if (!user.isAdmin() && !user.getId().equals(userId))
@@ -102,7 +103,7 @@ public class OrderController {
     @PostMapping
     // [FIX-C] 开启 Bean Validation，OrderRequest 上的 @NotNull 自动生效
     public Result<OrderDetailResponse> save(@Valid @RequestBody OrderRequest orderRequest,
-                                            Authentication authentication){
+                                            Authentication authentication) {
         CustomUserDetails user = SecurityUtils.currentUser(authentication);
         if (orderRequest == null || orderRequest.getOrder() == null)
             throw new BusinessException(Result.BAD_REQUEST_CODE, "订单信息不能为空");
@@ -120,8 +121,8 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id, Authentication authentication){
-        assertOrderAccess(authentication,orderService.getById(id));
+    public Result<Void> delete(@PathVariable Long id, Authentication authentication) {
+        assertOrderAccess(authentication, orderService.getById(id));
         orderService.delete(id);
         return Result.success();
     }
@@ -129,17 +130,18 @@ public class OrderController {
     // TODO: 订单更新
 
     /**
-     *  更新订单 PUT /api/orders
-     *  普通用户只能更新自己的订单，管理员可以更新所有订单
-     *  [FIX-5] 改用专用 DTO 接收参数，避免直接暴露 Order 实体（Mass Assignment 风险）
-     *  [FIX-C] 开启 Bean Validation，OrderUpdateRequest 上的 @NotNull 自动生效
-     * @param req 订单更新请求
+     * 更新订单 PUT /api/orders
+     * 普通用户只能更新自己的订单，管理员可以更新所有订单
+     * [FIX-5] 改用专用 DTO 接收参数，避免直接暴露 Order 实体（Mass Assignment 风险）
+     * [FIX-C] 开启 Bean Validation，OrderUpdateRequest 上的 @NotNull 自动生效
+     *
+     * @param req            订单更新请求
      * @param authentication
      * @return
      */
     @PutMapping
     public Result<Void> update(@Valid @RequestBody OrderUpdateRequest req,
-                               Authentication authentication){
+                               Authentication authentication) {
         if (req == null || req.getId() == null)
             throw new BusinessException(Result.BAD_REQUEST_CODE, "订单信息不能为空");
         // 通过订单id查询订单信息
@@ -165,7 +167,7 @@ public class OrderController {
      * - 只调用一次状态更新（updateStatusByOrderNo），避免被外层再次 update 覆盖回旧状态
      *
      * @param existing 当前订单（数据库中的最新状态）
-     * @param req 更新请求
+     * @param req      更新请求
      */
     private void confirmReceipt(Order existing, OrderUpdateRequest req) {
         Integer target = req.getTargetStatus();
@@ -184,7 +186,7 @@ public class OrderController {
      * - 状态变更必须经过状态机校验（管理员允许额外的取消/退款流转）
      *
      * @param existing 当前订单
-     * @param req 更新请求
+     * @param req      更新请求
      */
     private void applyAdminUpdate(Order existing, OrderUpdateRequest req) {
         Order merged = new Order();
@@ -207,6 +209,7 @@ public class OrderController {
 
     /**
      * 越权检查，用户只能访问自己的订单，管理员可以访问所有订单
+     *
      * @param authentication
      * @param order
      */

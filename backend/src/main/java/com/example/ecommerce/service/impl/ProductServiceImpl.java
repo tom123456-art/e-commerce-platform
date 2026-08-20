@@ -3,12 +3,10 @@ package com.example.ecommerce.service.impl;
 import com.example.ecommerce.common.BusinessException;
 import com.example.ecommerce.common.PagedResponse;
 import com.example.ecommerce.common.Result;
-import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.mapper.ProductMapper;
-import com.example.ecommerce.mapper.ReviewMapper;
 import com.example.ecommerce.service.ProductService;
 import com.example.ecommerce.utils.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,31 +30,27 @@ public class ProductServiceImpl implements ProductService {
     private static final long PRODUCT_CACHE_TTL_SECONDS = 60 * 60L;
 
     // 分类标签映射，帮我显示中文分类名
-    private static final Map<Integer,String> CATEGORY_LABELS = createCategoryLabels();
-
-    private static Map<Integer, String> createCategoryLabels() {
-        Map<Integer,String> labels = new HashMap<>();
-        labels.put(1,"手机数码");
-        labels.put(2,"电脑办公");
-        labels.put(3,"智能家电");
-        labels.put(4,"家居生活");
-        labels.put(5,"运动户外");
-        labels.put(6,"影音娱乐");
-        return labels;
-    }
-
-
+    private static final Map<Integer, String> CATEGORY_LABELS = createCategoryLabels();
     private final ProductMapper productMapper;
-    private final ReviewMapper reviewMapper;
     private final RedisUtil redisUtil;
     /* JSON工具 */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /* 构造器注入 */
-    public ProductServiceImpl(ProductMapper productMapper, ReviewMapper reviewMapper, RedisUtil redisUtil) {
+    public ProductServiceImpl(ProductMapper productMapper, RedisUtil redisUtil) {
         this.productMapper = productMapper;
-        this.reviewMapper = reviewMapper;
         this.redisUtil = redisUtil;
+    }
+
+    private static Map<Integer, String> createCategoryLabels() {
+        Map<Integer, String> labels = new HashMap<>();
+        labels.put(1, "手机数码");
+        labels.put(2, "电脑办公");
+        labels.put(3, "智能家电");
+        labels.put(4, "家居生活");
+        labels.put(5, "运动户外");
+        labels.put(6, "影音娱乐");
+        return labels;
     }
 
     /**
@@ -118,7 +113,7 @@ public class ProductServiceImpl implements ProductService {
         String key = "products:all";
 
         try {
-            if(redisUtil.exists(key)){
+            if (redisUtil.exists(key)) {
                 return objectMapper.readValue(
                         String.valueOf(redisUtil.get(key)),
                         objectMapper.getTypeFactory().constructCollectionType(
@@ -128,7 +123,7 @@ public class ProductServiceImpl implements ProductService {
                 );
             }
             List<Product> products = productMapper.selectAll();
-            if (products != null){
+            if (products != null) {
                 redisUtil.set(
                         key,
                         objectMapper.writeValueAsString(products),
@@ -144,6 +139,7 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 分页条件查询商品
+     *
      * @param request
      * @return
      */
@@ -151,9 +147,9 @@ public class ProductServiceImpl implements ProductService {
     public PagedResponse<Product> query(ProductQueryRequest request) {
         ProductQueryRequest safeRequest =
                 request == null ? new ProductQueryRequest() : request;
-        if(safeRequest.getMinPrice() != null && safeRequest.getMaxPrice() != null
-        && safeRequest.getMinPrice().compareTo(safeRequest.getMaxPrice()) > 0){
-            throw new BusinessException(Result.BAD_REQUEST_CODE,"价格范围设置错误");
+        if (safeRequest.getMinPrice() != null && safeRequest.getMaxPrice() != null
+                && safeRequest.getMinPrice().compareTo(safeRequest.getMaxPrice()) > 0) {
+            throw new BusinessException(Result.BAD_REQUEST_CODE, "价格范围设置错误");
         }
         // 设置参数
         safeRequest.setPage(safeRequest.getNormalizedPage());
@@ -201,9 +197,9 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public void save(Product product) {
-       productMapper.insert(product);
-       /* 缓存清除 */
-       evictProductCaches();
+        productMapper.insert(product);
+        /* 缓存清除 */
+        evictProductCaches();
     }
 
     /**
@@ -211,11 +207,11 @@ public class ProductServiceImpl implements ProductService {
      * 使用try catch保护，如果缓存清理失败的话，不会影响主流程
      */
     private void evictProductCaches() {
-        try{
+        try {
             redisUtil.delete("products:all");
             redisUtil.deleteByPattern("products:category:*");
             redisUtil.deleteByPattern("products:showcase:*");
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.warn("商品缓存清理失败：{}", e.getMessage());
         }
     }
@@ -239,6 +235,7 @@ public class ProductServiceImpl implements ProductService {
 
     /**
      * 商品字段的规范化处理
+     *
      * @param product
      * @param requiredId 是否要求商品ID必须存在
      * @return
@@ -262,7 +259,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-    /** 库存规范化：非空、非负 */
+    /**
+     * 库存规范化：非空、非负
+     */
     private Integer normalizeStock(Integer stock) {
         if (stock == null) {
             throw new IllegalArgumentException("商品库存不能为空");
@@ -273,7 +272,9 @@ public class ProductServiceImpl implements ProductService {
         return stock;
     }
 
-    /** 分类合法性校验：必须在预定义的 6 个分类内 */
+    /**
+     * 分类合法性校验：必须在预定义的 6 个分类内
+     */
     private Integer normalizeCategoryId(Integer categoryId) {
         if (categoryId == null || !CATEGORY_LABELS.containsKey(categoryId)) {
             throw new IllegalArgumentException("商品分类无效");
@@ -281,7 +282,9 @@ public class ProductServiceImpl implements ProductService {
         return categoryId;
     }
 
-    /** 状态规范化：null 时默认 1（上架），只允许 0/1 */
+    /**
+     * 状态规范化：null 时默认 1（上架），只允许 0/1
+     */
     private Integer normalizeStatus(Integer status) {
         int normalized = status == null ? 1 : status;
         if (normalized != 0 && normalized != 1) {
@@ -295,7 +298,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("商品价格不能为空");
         if (price.compareTo(BigDecimal.ZERO) < 0)
             throw new IllegalArgumentException("商品价格不能为负");
-        return price.setScale(2, BigDecimal.ROUND_HALF_UP);
+        return price.setScale(2, RoundingMode.HALF_UP);
     }
 
     private String requireText(String name, String message) {
@@ -323,45 +326,20 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 批量导入商品
      * Transactional开启事务，保证所有的插入具有原子性
+     *
      * @param products
      * @return
      */
     @Override
     @Transactional
     public int importProducts(List<Product> products) {
-        if(products == null || products.isEmpty()){
+        if (products == null || products.isEmpty()) {
             throw new IllegalArgumentException("导入商品不能为空");
         }
-        for(Product p: products){
+        for (Product p : products) {
             productMapper.insert(p);
         }
         evictProductCaches();
         return products.size();
     }
-
-    /**
-     * 查询商品详情 DTO
-     *
-     * @param id
-     */
-    @Override
-    public ProductDetailResponse getDetailById(Long id) {
-        Product product = getById(id);
-        if (product == null) {
-            throw new BusinessException(Result.NOT_FOUND_CODE, "商品不存在");
-        }
-
-        Integer commentCount = reviewMapper.countByProductId(id);
-        Double averageRating = reviewMapper.avgRatingByProductId(id);
-
-        return new ProductDetailResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                commentCount,
-                averageRating
-        );
-    }
-
 }

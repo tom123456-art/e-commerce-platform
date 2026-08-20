@@ -2,22 +2,22 @@ package com.example.ecommerce.utils;
 
 /**
  * 敏感信息脱敏工具类 —— 日志中记录用户信息时的隐私保护。
- *
+ * <p>
  * 设计原则：
- *   1. 纯静态方法：工具类无状态，所有方法 static
- *   2. null 安全：输入 null 时返回 null，不抛异常
- *   3. 短字符串保护：输入太短无法安全脱敏时，返回原值
- *
+ * 1. 纯静态方法：工具类无状态，所有方法 static
+ * 2. null 安全：输入 null 时返回 null，不抛异常
+ * 3. 短字符串保护：输入太短无法安全脱敏时，返回原值
+ * <p>
  * 使用场景：
- *   log.info("用户登录，手机号：{}", SensitiveDataUtil.maskPhone(phone));  // 138****5678
- *   log.info("发送邮件到：{}", SensitiveDataUtil.maskEmail(email));       // u****@example.com
- *
+ * log.info("用户登录，手机号：{}", SensitiveDataUtil.maskPhone(phone));  // 138****5678
+ * log.info("发送邮件到：{}", SensitiveDataUtil.maskEmail(email));       // u****@example.com
+ * <p>
  * 脱敏规则：
- *   手机号：138****5678      （保留前3后4）
- *   邮箱：  u****@example.com （保留首字符和域名）
- *   密码：  ******           （完全隐藏，固定6个星号，不泄露长度）
- *   Token： eyJhbG****c123   （保留前6后4）
- *   身份证：110***********1234（保留前3后4）
+ * 手机号：138****5678      （保留前3后4）
+ * 邮箱：  u****@example.com （保留首字符和域名）
+ * 密码：  ******           （完全隐藏，固定6个星号，不泄露长度）
+ * Token： eyJhbG****c123   （保留前6后4）
+ * 身份证：110***********1234（保留前3后4）
  */
 public class SensitiveDataUtil {
 
@@ -36,6 +36,7 @@ public class SensitiveDataUtil {
     /**
      * 邮箱脱敏：保留 @ 前第一个字符和域名部分。
      * user@example.com → u****@example.com
+     *
      * @ 前只有 0 或 1 个字符时返回原值。
      */
     public static String maskEmail(String email) {

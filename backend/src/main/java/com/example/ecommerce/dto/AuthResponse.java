@@ -16,7 +16,7 @@ public class AuthResponse {
     /**
      * 静态工厂方法，用来快速创建AuthResponse实例
      */
-    public static AuthResponse of(String token, User user){
+    public static AuthResponse of(String token, User user) {
         AuthResponse response = new AuthResponse();
         response.setToken(token);
         response.setUser(user);

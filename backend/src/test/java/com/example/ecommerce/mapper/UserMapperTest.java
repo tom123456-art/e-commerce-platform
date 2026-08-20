@@ -8,7 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * UserMapper测试类
@@ -29,10 +30,10 @@ class UserMapperTest {
     private User testUser;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         // 清除可能残留的同名数据，保证测试可以重复执行
         User testuserMapper = userMapper.selectByUsername("testuser_mapper");
-        if(testuserMapper != null){
+        if (testuserMapper != null) {
             userMapper.delete(testuserMapper.getId());
         }
         // 构造一个测试用户
@@ -47,7 +48,7 @@ class UserMapperTest {
     }
 
     @Test
-    void insertAndSelectById(){
+    void insertAndSelectById() {
         // 插入用户
         int rows = userMapper.insert(testUser);
         assertEquals(1, rows, "插入应影响1行");
@@ -62,7 +63,7 @@ class UserMapperTest {
     }
 
     @Test
-    void selectByUsername(){
+    void selectByUsername() {
         userMapper.insert(testUser);
         User user = userMapper.selectByUsername("testuser_mapper");
         System.out.println("根据用户名查询到用户：" + user);
@@ -71,14 +72,14 @@ class UserMapperTest {
     }
 
     @Test
-    void testUpdate(){
+    void testUpdate() {
         userMapper.insert(testUser);
         Long testUserId = testUser.getId();
         testUser.setNickname("张三");
         testUser.setPassword("123123");
         testUser.setStatus(0);
         int rows = userMapper.update(testUser);
-        if(rows > 0){
+        if (rows > 0) {
             System.out.println("用户信息更新成功");
             User user = userMapper.selectById(testUserId);
             System.out.println(user);
@@ -89,12 +90,12 @@ class UserMapperTest {
 
 
     @Test
-    void testDelete(){
+    void testDelete() {
         userMapper.insert(testUser);
         Long testUserId = testUser.getId();
 
         int rows = userMapper.delete(testUserId);
-        if(rows > 0){
+        if (rows > 0) {
             System.out.println("用户删除成功");
         } else {
             System.out.println("用户删除失败");

@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=" +
-            "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
-            "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
+        "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
+                "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
 })
 @ActiveProfiles("test")
 @Transactional

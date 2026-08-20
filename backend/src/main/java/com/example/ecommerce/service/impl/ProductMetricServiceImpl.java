@@ -48,17 +48,21 @@ public class ProductMetricServiceImpl implements ProductMetricService {
 
     private static final Logger log = LoggerFactory.getLogger(ProductMetricServiceImpl.class);
 
-    /** 指标默认统计天数 */
+    /**
+     * 指标默认统计天数
+     */
     private static final int DEFAULT_DAYS = 7;
 
-    /** 趋势图默认天数 */
+    /**
+     * 趋势图默认天数
+     */
     private static final int DEFAULT_TREND_DAYS = 30;
 
     private final ProductViewEventMapper viewEventMapper;
     private final ProductMetricDailyMapper metricDailyMapper;
 
     public ProductMetricServiceImpl(ProductViewEventMapper viewEventMapper,
-                                     ProductMetricDailyMapper metricDailyMapper) {
+                                    ProductMetricDailyMapper metricDailyMapper) {
         this.viewEventMapper = viewEventMapper;
         this.metricDailyMapper = metricDailyMapper;
     }
@@ -67,7 +71,7 @@ public class ProductMetricServiceImpl implements ProductMetricService {
      * 记录商品浏览事件。
      *
      * <p>容错设计：失败只打警告日志，不影响商品详情页展示。</p>
-     *
+     * <p>
      * 调用时机：
      * - 用户进入商品详情页时（ProductController.getById）
      * - 从推荐列表点击商品时（source=recommend）
@@ -105,7 +109,7 @@ public class ProductMetricServiceImpl implements ProductMetricService {
      * 记录加购事件。
      *
      * <p>容错设计：失败只打警告日志，不影响加购主流程。</p>
-     *
+     * <p>
      * 调用时机：CartServiceImpl.addItem() 中，商品成功加入购物车后调用。
      *
      * @param productId 商品 ID
@@ -132,7 +136,7 @@ public class ProductMetricServiceImpl implements ProductMetricService {
      * 使用 @Transactional 保证多个订单项的写入原子性。</p>
      *
      * <p>容错设计：失败只打警告日志，不影响支付主流程。</p>
-     *
+     * <p>
      * 调用时机：PaymentServiceImpl 中，支付回调成功后调用。
      *
      * @param order      订单实体
@@ -147,28 +151,28 @@ public class ProductMetricServiceImpl implements ProductMetricService {
         try {
             for (OrderItem orderItem : orderItems) {
                 if (orderItem == null || orderItem.getProductId() == null
-                    || orderItem.getQuantity() == null || orderItem.getQuantity() <= 0) {
+                        || orderItem.getQuantity() == null || orderItem.getQuantity() <= 0) {
                     continue;
                 }
                 // 计算订单项金额 = 价格快照 × 数量
                 BigDecimal lineAmount = safeAmount(orderItem.getPrice())
-                    .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+                        .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
 
                 // 支付订单数 +1，支付数量 +quantity，支付金额 +lineAmount
                 metricDailyMapper.upsertDelta(buildMetricDelta(
-                    orderItem.getProductId(), 0, 0, 1, orderItem.getQuantity(), lineAmount
+                        orderItem.getProductId(), 0, 0, 1, orderItem.getQuantity(), lineAmount
                 ));
             }
         } catch (Exception ex) {
             // 容错：指标记录失败不应影响支付主流程
             log.warn("Failed to record payment metrics for order {}: {}",
-                order == null ? null : order.getOrderNo(), ex.getMessage());
+                    order == null ? null : order.getOrderNo(), ex.getMessage());
         }
     }
 
     /**
      * 汇总指定时间窗口的指标。
-     *
+     * <p>
      * 用途：
      * - 首页展示"累计浏览量"、"累计加购数"等运营数据
      * - 后台管理仪表盘展示整体经营状况
@@ -194,14 +198,14 @@ public class ProductMetricServiceImpl implements ProductMetricService {
         }
 
         log.debug("Metric summary query: days={}, viewCount={}, cartAddCount={}",
-            days, summary.getViewCount(), summary.getCartAddCount());
+                days, summary.getViewCount(), summary.getCartAddCount());
 
         return summary;
     }
 
     /**
      * 获取最近 N 天的每日指标明细。
-     *
+     * <p>
      * 用途：
      * - 首页展示趋势图（折线图/柱状图）
      * - 对比不同时间段的经营状况
@@ -227,16 +231,16 @@ public class ProductMetricServiceImpl implements ProductMetricService {
 
     /**
      * 构建每日指标增量对象。
-     *
+     * <p>
      * 用于 upsertDelta 方法：将各维度的增量值封装为 ProductMetricDaily 对象，
      * 由 Mapper XML 中的 ON DUPLICATE KEY UPDATE 实现累加。
      *
-     * @param productId       商品 ID
-     * @param viewCount       浏览增量
-     * @param cartAddCount    加购增量
-     * @param paidOrderCount  支付订单增量
-     * @param paidQuantity    支付数量增量
-     * @param paidAmount      支付金额增量
+     * @param productId      商品 ID
+     * @param viewCount      浏览增量
+     * @param cartAddCount   加购增量
+     * @param paidOrderCount 支付订单增量
+     * @param paidQuantity   支付数量增量
+     * @param paidAmount     支付金额增量
      * @return 封装好增量值的 ProductMetricDaily 对象
      */
     private ProductMetricDaily buildMetricDelta(Long productId,
@@ -256,7 +260,9 @@ public class ProductMetricServiceImpl implements ProductMetricService {
         return metric;
     }
 
-    /** 安全的 BigDecimal 空值处理（null -> ZERO） */
+    /**
+     * 安全的 BigDecimal 空值处理（null -> ZERO）
+     */
     private BigDecimal safeAmount(BigDecimal amount) {
         return amount == null ? BigDecimal.ZERO : amount;
     }

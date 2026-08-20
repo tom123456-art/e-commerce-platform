@@ -13,7 +13,6 @@ import com.example.ecommerce.service.OrderService;
 import com.example.ecommerce.service.ProductService;
 import com.example.ecommerce.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.jspecify.annotations.NonNull;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,7 +44,7 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard")
-    public Result<AdminDashboardResponse> dashboard(){
+    public Result<AdminDashboardResponse> dashboard() {
         return Result.success(buildDashboardResponse());
     }
 
@@ -57,6 +56,7 @@ public class AdminController {
 
     /**
      * 构建仪表盘的响应对象，可以聚合User、Product、Order的数据
+     *
      * @return
      */
     private AdminDashboardResponse buildDashboardResponse() {
@@ -126,6 +126,7 @@ public class AdminController {
 
     /**
      * 构建推荐权重分布饼图
+     *
      * @param products
      * @return
      */
@@ -142,6 +143,7 @@ public class AdminController {
 
     /**
      * 构建推荐产品分布饼图
+     *
      * @param products
      * @return
      */
@@ -149,7 +151,7 @@ public class AdminController {
         List<ProductShowcaseResponse> recommendedProducts
                 = productService.getRecommendedProducts(null, 6);
         List<DashboardChartItem> items = new ArrayList<>();
-        for (ProductShowcaseResponse recommended: recommendedProducts){
+        for (ProductShowcaseResponse recommended : recommendedProducts) {
             if (recommended.getProduct() == null) continue;
             items.add(
                     new DashboardChartItem(
@@ -164,13 +166,14 @@ public class AdminController {
 
     /**
      * 构建热销产品分布饼图
+     *
      * @param products
      * @return
      */
     private List<DashboardChartItem> buildHotProductDistribution(List<Product> products) {
         List<ProductShowcaseResponse> hotProducts = productService.getHotProducts(6);
         List<DashboardChartItem> items = new ArrayList<>();
-        for (ProductShowcaseResponse hot: hotProducts){
+        for (ProductShowcaseResponse hot : hotProducts) {
             if (hot.getProduct() == null) continue;
             items.add(new DashboardChartItem(
                     hot.getProduct().getName(),
@@ -182,6 +185,7 @@ public class AdminController {
 
     /**
      * 构建用户状态分布饼图
+     *
      * @param users
      * @return
      */
@@ -189,7 +193,7 @@ public class AdminController {
         Map<String, Double> buckets = new LinkedHashMap<>();
         buckets.put("启用", 0D);
         buckets.put("禁用", 0D);
-        for (User user : users){
+        for (User user : users) {
             String label = user.getStatus() != null && user.getStatus() == 1 ? "启用" : "禁用";
             buckets.put(label, buckets.get(label) + 1D);
         }
@@ -198,6 +202,7 @@ public class AdminController {
 
     /**
      * 构建用户角色分布图
+     *
      * @param users
      * @return
      */
@@ -205,8 +210,8 @@ public class AdminController {
         Map<String, Double> buckets = new LinkedHashMap<>();
         buckets.put("管理员", 0D);
         buckets.put("普通用户", 0D);
-        for (User user : users){
-            String label = "ADMIN".equalsIgnoreCase(user.getRole()) ? "管理员": "普通用户";
+        for (User user : users) {
+            String label = "ADMIN".equalsIgnoreCase(user.getRole()) ? "管理员" : "普通用户";
             buckets.put(label, buckets.get(label) + 1D);
         }
         return toChartItems(buckets);
@@ -214,6 +219,7 @@ public class AdminController {
 
     /**
      * 构建订单状态分布饼图数据
+     *
      * @param pendingOrderCount
      * @param paidOrderCount
      * @param completedOrderCount
@@ -229,22 +235,24 @@ public class AdminController {
 
     /**
      * 构建产品分类分布饼图数据
+     *
      * @param products
      * @return
      */
-    private List<DashboardChartItem> buildProductCategoryDistribution(List<Product> products){
+    private List<DashboardChartItem> buildProductCategoryDistribution(List<Product> products) {
         Map<String, Double> buckets = new LinkedHashMap<>();
-        for (Product product: products){
+        for (Product product : products) {
             Integer categoryId = product.getCategoryId();
             String label = categoryLabel(categoryId);
             // 如果包含该标签，则累加，否则新增
-            buckets.put(label, buckets.containsKey(label)? buckets.get(label) + 1D : 1D);
+            buckets.put(label, buckets.containsKey(label) ? buckets.get(label) + 1D : 1D);
         }
         return toChartItems(buckets);
     }
 
     /**
      * 将Map<String,Double>转换成图表的数据列表
+     *
      * @param buckets
      * @return
      */
@@ -258,12 +266,13 @@ public class AdminController {
 
     /**
      * 根据分类ID获取分类标签
+     *
      * @param categoryId
      * @return
      */
     private String categoryLabel(Integer categoryId) {
         if (categoryId == null) return "未分类";
-        switch (categoryId){
+        switch (categoryId) {
             case 1:
                 return "手机数码";
             case 2:

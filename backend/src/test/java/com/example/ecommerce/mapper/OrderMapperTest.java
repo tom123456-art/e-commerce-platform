@@ -2,7 +2,6 @@ package com.example.ecommerce.mapper;
 
 import com.example.ecommerce.entity.Order;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -41,33 +42,33 @@ class OrderMapperTest {
     }
 
     @Test
-    void selectById(){
+    void selectById() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
-        if(i > 0){
+        if (i > 0) {
             Order order = orderMapper.selectById(testOrder.getId());
             System.out.println(order);
         }
     }
 
     @Test
-    void selectByOrderNo(){
+    void selectByOrderNo() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
-        if(i > 0){
+        if (i > 0) {
             Order order = orderMapper.selectByOrderNo(testOrder.getOrderNo());
             System.out.println(order);
         }
     }
 
     @Test
-    void selectByUserIdOrders(){
+    void selectByUserIdOrders() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
-        if(i > 0){
+        if (i > 0) {
             List<Order> orders = orderMapper.selectByUserIdOrders(testOrder.getUserId());
             for (Order order : orders)
                 System.out.println(order);
@@ -75,25 +76,25 @@ class OrderMapperTest {
     }
 
     @Test
-    void insert(){
+    void insert() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
     }
 
     @Test
-    void selectAll(){
+    void selectAll() {
         List<Order> orders = orderMapper.selectAll();
         for (Order order : orders)
             System.out.println(order);
     }
 
     @Test
-    void update(){
+    void update() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
-        if(i > 0){
+        if (i > 0) {
             Order order = orderMapper.selectById(testOrder.getId());
             order.setStatus(2);
             int j = orderMapper.update(order);
@@ -101,12 +102,13 @@ class OrderMapperTest {
             assertEquals(1, j);
         }
     }
+
     @Test
-    void delete(){
+    void delete() {
         int i = orderMapper.insert(testOrder);
         assertNotNull(i);
         assertEquals(1, i);
-        if(i > 0){
+        if (i > 0) {
             int j = orderMapper.delete(testOrder.getId());
             assertNotNull(j);
             assertEquals(1, j);

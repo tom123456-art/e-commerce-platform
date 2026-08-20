@@ -21,14 +21,9 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * OrderServiceImpl 单元测试（Mockito）。
@@ -64,7 +59,9 @@ class OrderServiceImplTest {
     @InjectMocks
     private OrderServiceImpl orderService;
 
-    /** 构造一个 status=1、库存充足、价格为 256 的在售商品 */
+    /**
+     * 构造一个 status=1、库存充足、价格为 256 的在售商品
+     */
     private Product availableProduct(Long id) {
         Product product = new Product();
         product.setId(id);
@@ -120,19 +117,23 @@ class OrderServiceImplTest {
         verify(redisUtil).deleteByPattern("products:showcase:*");
     }
 
-    /** 边界：订单项为空应抛 400 */
+    /**
+     * 边界：订单项为空应抛 400
+     */
     @Test
     void saveRejectsEmptyOrderItems() {
         Order order = new Order();
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.emptyList()));
+                () -> orderService.save(order, Collections.emptyList()));
 
         assertEquals(Result.BAD_REQUEST_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
     }
 
-    /** 防超卖：库存不足时 decreaseStock 返回 0，应抛 409，且不发布 MQ 事件 */
+    /**
+     * 防超卖：库存不足时 decreaseStock 返回 0，应抛 409，且不发布 MQ 事件
+     */
     @Test
     void saveRejectsInsufficientStock() {
         Order order = new Order();
@@ -149,13 +150,15 @@ class OrderServiceImplTest {
         when(productMapper.decreaseStock(9L, 3)).thenReturn(0);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.singletonList(orderItem)));
+                () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.CONFLICT_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
     }
 
-    /** 商品不可用（status!=1）应抛 404，不发布 MQ 事件 */
+    /**
+     * 商品不可用（status!=1）应抛 404，不发布 MQ 事件
+     */
     @Test
     void saveRejectsUnavailableProduct() {
         Order order = new Order();
@@ -171,13 +174,15 @@ class OrderServiceImplTest {
         when(productMapper.selectById(9L)).thenReturn(product);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.save(order, Collections.singletonList(orderItem)));
+                () -> orderService.save(order, Collections.singletonList(orderItem)));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
     }
 
-    /** 幂等性：客户端传入已存在的 orderNo，应返回已有订单详情，不再插入新订单 */
+    /**
+     * 幂等性：客户端传入已存在的 orderNo，应返回已有订单详情，不再插入新订单
+     */
     @Test
     void saveReturnsExistingOrderOnDuplicateOrderNo() {
         Order existing = new Order();
@@ -205,13 +210,15 @@ class OrderServiceImplTest {
         verify(orderMessagePublisher, never()).publishOrderCreated(any(), any());
     }
 
-    /** 订单详情不存在应抛 404 */
+    /**
+     * 订单详情不存在应抛 404
+     */
     @Test
     void getDetailByIdThrowsWhenNotFound() {
         when(orderMapper.selectById(1L)).thenReturn(null);
 
         BusinessException exception = assertThrows(BusinessException.class,
-            () -> orderService.getDetailById(1L));
+                () -> orderService.getDetailById(1L));
 
         assertEquals(Result.NOT_FOUND_CODE, exception.getCode());
     }

@@ -32,10 +32,13 @@ public interface ProductMapper {
 
     // 插入新商品
     int insert(Product product);
+
     // 更新商品
     int update(Product product);
+
     // 删除商品
     int delete(Long id);
+
     // 库存
     // 为了防止超卖
     // update product

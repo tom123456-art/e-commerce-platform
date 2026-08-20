@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Tag(name = "Excel导入导出接口",description = "商品数据Excel导入导出")
+@Tag(name = "Excel导入导出接口", description = "商品数据Excel导入导出")
 @RestController
 @RequestMapping("/api/excel")
 public class ExcelController {
@@ -28,6 +28,7 @@ public class ExcelController {
 
     /**
      * 导出订单信息
+     *
      * @param response
      * @throws IOException
      */
@@ -37,13 +38,13 @@ public class ExcelController {
         List<Order> orders = orderService.getAll();
         // 2、定义Excel表头
         String[] headers = {
-               "订单ID","用户ID", "订单编号", "总金额",
+                "订单ID", "用户ID", "订单编号", "总金额",
                 "状态", "地址", "电话", "收货人", "创建时间"
         };
         // 3、Order实体类映射为List<Map>结构
         List<Map<String, Object>> dataList = new ArrayList<>();
         // 遍历订单
-        for (Order order: orders){
+        for (Order order : orders) {
             Map<String, Object> row = new HashMap<>();
             row.put("订单ID", order.getId());
             row.put("用户ID", order.getUserId());
@@ -70,16 +71,21 @@ public class ExcelController {
 
     private String getStatusLabel(Integer status) {
         if (status == null) return "未知";
-        switch (status){
-            case 0: return "待支付";
-            case 1: return "已支付";
-            case 2: return "已完成";
-            default: return "未知";
+        switch (status) {
+            case 0:
+                return "待支付";
+            case 1:
+                return "已支付";
+            case 2:
+                return "已完成";
+            default:
+                return "未知";
         }
     }
 
     /**
      * 下载商品批量导入的Excel模板
+     *
      * @param response
      */
     @GetMapping("/productImportTemplate")

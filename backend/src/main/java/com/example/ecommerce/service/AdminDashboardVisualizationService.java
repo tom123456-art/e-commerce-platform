@@ -32,7 +32,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AdminDashboardVisualizationService {
 
-    /** Python 脚本执行超时时间（秒） */
+    /**
+     * Python 脚本执行超时时间（秒）
+     */
     private static final long SCRIPT_TIMEOUT_SECONDS = 30L;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -146,14 +148,14 @@ public class AdminDashboardVisualizationService {
      */
     private String fallbackHtml(String message) {
         return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>后台看板</title>"
-            + "<style>body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#eef3f9;padding:24px;color:#152033;}"
-            + ".card{max-width:900px;margin:0 auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 18px 40px rgba(15,23,42,.08);}"
-            + "h1{margin:0 0 12px;font-size:28px;}p{line-height:1.8;color:#5f6b7c;}"
-            + "code{display:block;margin-top:16px;padding:14px;border-radius:14px;background:#f8fbff;color:#c2410c;white-space:pre-wrap;}</style>"
-            + "</head><body><div class=\"card\"><h1>PyEcharts 看板暂不可用</h1>"
-            + "<p>图表渲染失败，系统已回退到说明页。</p><code>"
-            + escapeHtml(message)
-            + "</code></div></body></html>";
+                + "<style>body{font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#eef3f9;padding:24px;color:#152033;}"
+                + ".card{max-width:900px;margin:0 auto;background:#fff;border-radius:20px;padding:28px;box-shadow:0 18px 40px rgba(15,23,42,.08);}"
+                + "h1{margin:0 0 12px;font-size:28px;}p{line-height:1.8;color:#5f6b7c;}"
+                + "code{display:block;margin-top:16px;padding:14px;border-radius:14px;background:#f8fbff;color:#c2410c;white-space:pre-wrap;}</style>"
+                + "</head><body><div class=\"card\"><h1>PyEcharts 看板暂不可用</h1>"
+                + "<p>图表渲染失败，系统已回退到说明页。</p><code>"
+                + escapeHtml(message)
+                + "</code></div></body></html>";
     }
 
     private String safeMessage(String message) {
@@ -166,10 +168,10 @@ public class AdminDashboardVisualizationService {
      */
     private String escapeHtml(String value) {
         return safeMessage(value)
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&#39;");
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

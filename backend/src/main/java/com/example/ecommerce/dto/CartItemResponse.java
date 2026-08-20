@@ -6,10 +6,10 @@ import java.math.BigDecimal;
 
 /**
  * 购物车商品项响应DTO
- *
+ * <p>
  * 我们通过聚合查询，通过用户Id查询购物车
  * select c.id, c.user_id, c.product_id, c.quantity, p.name as product_name, p.price,p.image,p.stock
- *     from cart_item c join product p on c.product_id = p.id
+ * from cart_item c join product p on c.product_id = p.id
  * where c.user_id=#{userId};
  */
 @ToString

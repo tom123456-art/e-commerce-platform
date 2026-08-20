@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=" +
                 "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
@@ -37,10 +36,10 @@ class ReviewMapperTest {
     }
 
     @Test
-    void selectByProductId(){
+    void selectByProductId() {
         reviewMapper.insertReview(review);
         List<Review> reviews = reviewMapper.selectByProductId(1L);
-        for (Review r: reviews)
+        for (Review r : reviews)
             System.out.println(r);
     }
 

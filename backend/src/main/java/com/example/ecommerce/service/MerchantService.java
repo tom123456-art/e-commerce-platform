@@ -7,7 +7,6 @@ import com.example.ecommerce.dto.StoreRequest;
 import com.example.ecommerce.entity.Review;
 import com.example.ecommerce.entity.Store;
 import com.example.ecommerce.entity.User;
-import jakarta.validation.Valid;
 
 import java.util.List;
 

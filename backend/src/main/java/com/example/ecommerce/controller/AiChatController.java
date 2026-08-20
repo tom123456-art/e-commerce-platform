@@ -28,11 +28,12 @@ public class AiChatController {
      * 用POST的原因：
      * 1、请求体中包含内容
      * 2、保存会话历史
+     *
      * @param request
      * @return
      */
     @PostMapping("/chat")
-    public Result<AiChatResponse> chat(@Valid @RequestBody AiChatRequest request){
+    public Result<AiChatResponse> chat(@Valid @RequestBody AiChatRequest request) {
         return Result.success(aiChatService.chat(request));
     }
 }

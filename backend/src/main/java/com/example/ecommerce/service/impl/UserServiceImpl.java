@@ -7,22 +7,20 @@ import com.example.ecommerce.mapper.UserMapper;
 import com.example.ecommerce.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
 /**
  * 用户服务实现类。
- *
+ * <p>
  * 职责：
  * - getUserById：根据 ID 查询用户
  * - getUserByUsername：根据用户名查询用户
  * - updateUser：更新用户信息
- *
+ * <p>
  * 被引用：
  * - AuthController：登录后获取用户信息
  * - SecurityConfig：Spring Security 验证用户名密码时调用
@@ -41,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     private final PasswordEncoder passwordEncoder;
+
     public UserServiceImpl(UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
@@ -48,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 根据 ID 查询用户。
-     *
+     * <p>
      * 场景：
      * - 登录后根据 Token 中的 userId 获取完整用户信息
      * - 订单详情中展示买家信息
@@ -70,11 +69,11 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 根据用户名查询用户。
-     *
+     * <p>
      * 场景：
      * - 登录时根据用户名查询用户（AuthService 调用）
      * - Spring Security 的 UserDetailsService 实现中使用
-     *
+     * <p>
      * 注意：用户名有唯一约束，最多返回一条记录
      */
     @Override
@@ -93,11 +92,11 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 更新用户信息。
-     *
+     * <p>
      * 可更新字段：邮箱、手机号、头像等（不在这里修改密码）
-     *
+     * <p>
      * 事务：虽然是单表更新，但用 @Transactional 是好习惯，
-     *       以后如果需要同时更新其他表（如用户统计表），可以保证一致性
+     * 以后如果需要同时更新其他表（如用户统计表），可以保证一致性
      */
     @Override
     public void updateUser(User user) {
@@ -109,9 +108,9 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(Result.NOT_FOUND_CODE, "用户不存在");
         // 合并，如果前端没有传值，则使用已有记录的值
         mergeMissingFields(user, existing);
-        validateUserFields(user,false);
+        validateUserFields(user, false);
         // 密码处理
-        if (user.getPassword() == null || user.getPassword().isEmpty()){
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
             user.setPassword(existing.getPassword());
         } else {
             user.setPassword(encodeIfNecessary(user.getPassword()));
@@ -159,6 +158,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 验证用户字段是否符合要求
+     *
      * @param user
      * @param b
      */
@@ -185,7 +185,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAll() {
         List<User> users = userMapper.selectAll();
-        users.forEach(user -> {if (user != null) user.setPassword(null);});
+        users.forEach(user -> {
+            if (user != null) user.setPassword(null);
+        });
         return users;
     }
 

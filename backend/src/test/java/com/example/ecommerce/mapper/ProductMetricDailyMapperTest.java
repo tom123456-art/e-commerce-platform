@@ -2,8 +2,8 @@ package com.example.ecommerce.mapper;
 
 
 import com.example.ecommerce.dto.ShowcaseDailyMetricItem;
-import com.example.ecommerce.entity.ProductMetricDaily;
 import com.example.ecommerce.dto.ShowcaseMetricSummary;
+import com.example.ecommerce.entity.ProductMetricDaily;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,13 +14,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=" +
-            "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
-            "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
+        "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
+                "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
 })
 @ActiveProfiles("test")
 @Transactional

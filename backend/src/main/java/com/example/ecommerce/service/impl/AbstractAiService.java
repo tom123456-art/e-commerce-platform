@@ -55,6 +55,32 @@ public abstract class AbstractAiService {
     }
 
     /**
+     * 从 Map 中取出 id（兼容 number / string）
+     */
+    private static Long toLong(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).longValue();
+        try {
+            return Long.parseLong(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 从 Map 中取出 score（兼容 number / string）
+     */
+    private static Integer toInt(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).intValue();
+        try {
+            return Integer.parseInt(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
      * 统一的“AI 优先、失败降级”编排：尝试 aiCall，异常则回退到 fallbackCall。
      * 返回 provider 与 fallback 标记，由子类负责封装成各自的响应对象。
      *
@@ -157,8 +183,7 @@ public abstract class AbstractAiService {
         try {
             List<?> list = objectMapper.readValue(cleaned, List.class);
             for (Object obj : list) {
-                if (!(obj instanceof Map)) continue;
-                Map<?, ?> m = (Map<?, ?>) obj;
+                if (!(obj instanceof Map<?, ?> m)) continue;
                 Long id = toLong(m.get("id"));
                 if (id == null) continue;
                 String reason = m.get("reason") != null ? m.get("reason").toString() : null;
@@ -177,28 +202,6 @@ public abstract class AbstractAiService {
         return results;
     }
 
-    /** 从 Map 中取出 id（兼容 number / string） */
-    private static Long toLong(Object value) {
-        if (value == null) return null;
-        if (value instanceof Number) return ((Number) value).longValue();
-        try {
-            return Long.parseLong(value.toString().trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /** 从 Map 中取出 score（兼容 number / string） */
-    private static Integer toInt(Object value) {
-        if (value == null) return null;
-        if (value instanceof Number) return ((Number) value).intValue();
-        try {
-            return Integer.parseInt(value.toString().trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
     /**
      * 单个 token 是否命中商品（名称/描述/分类标签，忽略大小写）。
      */
@@ -209,7 +212,9 @@ public abstract class AbstractAiService {
         return name.contains(word) || desc.contains(word) || category.contains(word);
     }
 
-    /** AI 调用结果的统一载体 */
+    /**
+     * AI 调用结果的统一载体
+     */
     protected static class AiCallResult<T> {
         private final List<T> results;
         private final String provider;
@@ -234,7 +239,9 @@ public abstract class AbstractAiService {
         }
     }
 
-    /** 解析出的单条 LLM 结果 */
+    /**
+     * 解析出的单条 LLM 结果
+     */
     protected record ParsedItem(Long id, String reason, Integer score) {
     }
 }

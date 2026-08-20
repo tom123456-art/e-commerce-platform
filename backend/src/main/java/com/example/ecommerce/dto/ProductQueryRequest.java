@@ -28,37 +28,38 @@ public class ProductQueryRequest {
 
     // 防御性规划
     // 获取规范化的页码
-    public int getNormalizedPage(){
+    public int getNormalizedPage() {
         return page == null || page < 1 ? 1 : page;
     }
+
     // 规范每页数量
-    public int getNormalizedPageSize(){
+    public int getNormalizedPageSize() {
         if (pageSize == null || pageSize < 1) return 8;
         return Math.min(pageSize, 50);
     }
 
     // 计算SQL的OFFSET值  (page-1)* pageSize
-    public int getOffset(){
+    public int getOffset() {
         return (getNormalizedPage() - 1) * getNormalizedPageSize();
     }
 
     // 清洗关键词的空白
-    public String getSanitizedKeyword(){
+    public String getSanitizedKeyword() {
         return StringUtils.hasText(keyword) ? keyword.trim() : null;
     }
 
     // 获取白名单校验后的排序字段
-    public String getNormalizedSortBy(){
-        if(!StringUtils.hasText(sortBy)) return "latest";
+    public String getNormalizedSortBy() {
+        if (!StringUtils.hasText(sortBy)) return "latest";
         String normalized = sortBy.trim().toLowerCase();
-        if("price".equals(normalized) || "stock".equals(normalized) || "name".equals(normalized)){
+        if ("price".equals(normalized) || "stock".equals(normalized) || "name".equals(normalized)) {
             return normalized;
         }
         return "latest";
     }
 
     // 获取规范化排序方向
-    public String getNormalizedSortDirection(){
+    public String getNormalizedSortDirection() {
         return "asc".equalsIgnoreCase(sortDirection) ? "asc" : "desc";
     }
 

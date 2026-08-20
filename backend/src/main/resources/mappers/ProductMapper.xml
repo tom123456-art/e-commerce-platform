@@ -20,12 +20,13 @@
     </resultMap>
     <!-- SQL片段，可复用的列名 -->
     <sql id="Base_Column_List">
-        id, name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time
+        id
+        , name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time
     </sql>
 
     <select id="selectById" resultMap="BaseResultMap">
         select
-        <include refid="Base_Column_List" />
+        <include refid="Base_Column_List"/>
         from product
         where id = #{id}
     </select>
@@ -37,26 +38,29 @@
     </select>
 
     <delete id="delete" parameterType="java.lang.Long">
-        delete from product
-        where id=#{id}
+        delete
+        from product
+        where id = #{id}
     </delete>
 
     <insert id="insert" parameterType="com.example.ecommerce.entity.Product"
             useGeneratedKeys="true" keyProperty="id">
-        insert into product(name, description, price, stock, image, category_id, merchant_id, status, create_time, update_time)
-        values (#{name}, #{description}, #{price}, #{stock}, #{image}, #{categoryId}, #{merchantId}, #{status}, now(), now())
+        insert into product(name, description, price, stock, image, category_id, merchant_id, status, create_time,
+                            update_time)
+        values (#{name}, #{description}, #{price}, #{stock}, #{image}, #{categoryId}, #{merchantId}, #{status}, now(),
+                now())
     </insert>
 
     <update id="update" parameterType="com.example.ecommerce.entity.Product">
         update product
-        set name = #{name},
+        set name        = #{name},
             description = #{description},
-            price = #{price},
-            stock = #{stock},
-            image = #{image},
+            price       = #{price},
+            stock       = #{stock},
+            image       = #{image},
             category_id = #{categoryId},
             merchant_id = #{merchantId},
-            status = #{status},
+            status      = #{status},
             update_time = now()
         where id = #{id}
     </update>
@@ -186,8 +190,10 @@
 
     <update id="decreaseStock">
         update product
-        set stock = stock - #{quantity}, update_time = now()
+        set stock       = stock - #{quantity},
+            update_time = now()
         where id = #{id}
-          and status = 1 and stock >= #{quantity}
+          and status = 1
+          and stock >= #{quantity}
     </update>
 </mapper>

@@ -6,17 +6,16 @@ import java.io.Serializable;
  * 统一响应封装类。
  * 所有 API 的返回格式统一为：
  * {
- *   "success": true,        // 业务是否成功
- *   "code": 200,            // 状态码
- *   "message": "success",   // 结果描述
- *   "data": { ... },        // 业务数据（泛型）
- *   "timestamp": 1718700000000 // 响应时间戳
+ * "success": true,        // 业务是否成功
+ * "code": 200,            // 状态码
+ * "message": "success",   // 结果描述
+ * "data": { ... },        // 业务数据（泛型）
+ * "timestamp": 1718700000000 // 响应时间戳
  * }
+ *
  * @param <T> data 字段的类型，由具体接口决定
  */
 public class Result<T> implements Serializable {
-    private static final long serialVersionUID = 1L;
-
     // ========== 状态码常量（与 HTTP 状态语义一致） ==========
     public static final int SUCCESS_CODE = 200;      // 成功
     public static final int BAD_REQUEST_CODE = 400; // 参数错误
@@ -25,7 +24,7 @@ public class Result<T> implements Serializable {
     public static final int NOT_FOUND_CODE = 404;   // 资源不存在
     public static final int CONFLICT_CODE = 409;     // 数据冲突
     public static final int ERROR_CODE = 500;       // 服务器错误
-
+    private static final long serialVersionUID = 1L;
     // ========== 实例字段 ==========
     private boolean success;    // 业务是否成功
     private int code;           // 业务状态码
@@ -33,12 +32,15 @@ public class Result<T> implements Serializable {
     private T data;             // 业务数据
     private long timestamp;     // 响应时间戳
 
-    /** 默认构造方法，自动设置时间戳 */
+    /**
+     * 默认构造方法，自动设置时间戳
+     */
     public Result() {
         this.timestamp = System.currentTimeMillis();
     }
 
     // ========== 静态工厂方法 ==========
+
     /**
      * 创建成功响应（携带数据）。
      * 用法: Result.success(user) 或 Result.success(productList)
@@ -52,7 +54,9 @@ public class Result<T> implements Serializable {
         return result;
     }
 
-    /** 创建成功响应（不携带数据），用于删除等操作 */
+    /**
+     * 创建成功响应（不携带数据），用于删除等操作
+     */
     public static Result<Void> success() {
         return success(null);
     }

@@ -6,11 +6,11 @@ import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 /**
-* @author waqwb
-* @description 针对表【order_item】的数据库操作Mapper
-* @createDate 2026-07-29 15:54:56
-* @Entity com.example.ecommerce.entity.OrderItem
-*/
+ * @author waqwb
+ * @description 针对表【order_item】的数据库操作Mapper
+ * @createDate 2026-07-29 15:54:56
+ * @Entity com.example.ecommerce.entity.OrderItem
+ */
 @Mapper
 public interface OrderItemMapper {
     // 查询所有订单项

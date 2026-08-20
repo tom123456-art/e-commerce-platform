@@ -62,8 +62,17 @@ public class MerchantServiceImpl implements MerchantService {
         user.setStatus(1);
         // 保存用户
         userService.save(user);
-        // TODO:查询拿到刚刚创建的用户，自动创建店铺
-        return user;
+        // 查询拿到刚刚创建的用户，自动创建店铺
+        User savedUser = userService.getUserByUsername(user.getUsername());
+        Store store = new Store();
+        store.setMerchantId(savedUser.getId());
+        store.setStoreName(request.getStoreName().trim());
+        store.setStoreDescription(request.getStoreDescription().trim());
+        store.setContactPhone(request.getPhone().trim());
+        store.setContactEmail(request.getEmail().trim());
+        store.setStatus(1);
+        storeMapper.insert(store);
+        return savedUser;
     }
 
     /**

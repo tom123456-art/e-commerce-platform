@@ -14,15 +14,25 @@ import lombok.Data;
  */
 @Data
 public class OrderUpdateRequest {
-    /** 订单主键，必填 */
+    /**
+     * 订单主键，必填
+     */
     @NotNull(message = "订单ID不能为空")
     private Long id;
-    /** 目标状态，可选 */
+    /**
+     * 目标状态，可选
+     */
     private Integer targetStatus;
-    /** 收货地址，可选 */
+    /**
+     * 收货地址，可选
+     */
     private String address;
-    /** 联系电话，可选 */
+    /**
+     * 联系电话，可选
+     */
     private String phone;
-    /** 收货人，可选 */
+    /**
+     * 收货人，可选
+     */
     private String receiver;
 }

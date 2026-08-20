@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 
 /**
  * 安全工具类，提供获取当前登录用户的便捷方法。
- *
+ * <p>
  * 📋 复制粘贴文件：从 02-code/11-Security/ 复制到项目中 security/ 目录。
  */
 public final class SecurityUtils {
@@ -17,6 +17,7 @@ public final class SecurityUtils {
 
     /**
      * 从 Authentication 对象中提取当前用户信息。
+     *
      * @throws BusinessException 如果用户未认证
      */
     public static CustomUserDetails currentUser(Authentication authentication) {

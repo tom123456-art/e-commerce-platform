@@ -9,15 +9,15 @@ public interface PaymentService {
     /**
      * 创建支付链接（真实支付宝 URL 或 Mock URL）
      *
-     * @param orderNo    本系统订单号。
-     *                   为什么要传：PaymentService 据此查出订单（校验订单存在、取订单金额、校验支付归属），
-     *                   是创建支付的入口标识，没有它就无法定位要支付哪笔订单。
-     * @param amount     前端传入的支付金额（可空）。
-     *                   为什么要传：用于与订单金额做一致性校验，防止前端篡改金额发起"少付"；
-     *                   为空时以订单实际金额为准，给前端不传金额留余地。
+     * @param orderNo     本系统订单号。
+     *                    为什么要传：PaymentService 据此查出订单（校验订单存在、取订单金额、校验支付归属），
+     *                    是创建支付的入口标识，没有它就无法定位要支付哪笔订单。
+     * @param amount      前端传入的支付金额（可空）。
+     *                    为什么要传：用于与订单金额做一致性校验，防止前端篡改金额发起"少付"；
+     *                    为空时以订单实际金额为准，给前端不传金额留余地。
      * @param description 支付标题/商品描述（可空）。
-     *                   为什么要传：展示在支付宝收银台的订单标题；为空时自动用
-     *                   "Order Payment-{orderNo}" 兜底，保证收银台始终有可读标题。
+     *                    为什么要传：展示在支付宝收银台的订单标题；为空时自动用
+     *                    "Order Payment-{orderNo}" 兜底，保证收银台始终有可读标题。
      */
     String createPayment(String orderNo, BigDecimal amount, String description);
 
@@ -46,6 +46,7 @@ public interface PaymentService {
     // │ 文档写法：public 接口方法，便于通过 self 代理调用激活 REQUIRES_NEW 独立事务
     // │ 修改原因：将审计日志方法提升为接口契约，支持 self 代理调用
     // └────────────────────────────────────────────────────────── ── ── ──
+
     /**
      * 创建支付回调审计日志（独立事务，保证即使主事务回滚日志依然落库）
      *
@@ -72,19 +73,20 @@ public interface PaymentService {
     // │ 文档写法：public 接口方法，便于通过 self 代理调用激活 REQUIRES_NEW 独立事务
     // │ 修改原因：将审计日志方法提升为接口契约，支持 self 代理调用
     // └────────────────────────────────────────────────────────── ── ── ──
+
     /**
      * 更新支付回调审计日志的处理结果（独立事务）
      *
-     * @param cbLog       上一步 createCallbackLog 返回的审计日志对象（含自增 id）。
-     *                    为什么要传：明确"更新哪一条"记录；在 REQUIRES_NEW 独立事务里它已是持久化对象，靠 id 定位。
-     * @param verified    验签是否通过（true=支付宝签名验证通过，来源可信）。
-     *                    为什么要传：这是安全审计的关键字段，记录这笔回调来源是否合法。
-     * @param processed   业务是否已处理（true=已更新订单状态/记指标等）。
-     *                    为什么要传：区分"收到并验签了"和"真正处理完了"两个阶段，避免重复统计或误判。
-     * @param success     本次处理是否最终成功。
-     *                    为什么要传：最外层的结果标记，运维/运营一眼就能看出这笔回调最终是成功还是失败。
+     * @param cbLog        上一步 createCallbackLog 返回的审计日志对象（含自增 id）。
+     *                     为什么要传：明确"更新哪一条"记录；在 REQUIRES_NEW 独立事务里它已是持久化对象，靠 id 定位。
+     * @param verified     验签是否通过（true=支付宝签名验证通过，来源可信）。
+     *                     为什么要传：这是安全审计的关键字段，记录这笔回调来源是否合法。
+     * @param processed    业务是否已处理（true=已更新订单状态/记指标等）。
+     *                     为什么要传：区分"收到并验签了"和"真正处理完了"两个阶段，避免重复统计或误判。
+     * @param success      本次处理是否最终成功。
+     *                     为什么要传：最外层的结果标记，运维/运营一眼就能看出这笔回调最终是成功还是失败。
      * @param errorMessage 处理失败时的错误原因（成功时为 null）。
-     *                    为什么要传：失败时把异常信息记下来，便于定位问题，否则日志只标"失败"却不知为何失败。
+     *                     为什么要传：失败时把异常信息记下来，便于定位问题，否则日志只标"失败"却不知为何失败。
      */
     void updateCallbackLog(PaymentCallbackLog cbLog, boolean verified, boolean processed,
                            boolean success, String errorMessage);

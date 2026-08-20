@@ -1,6 +1,5 @@
 package com.example.ecommerce.common;
 
-import com.example.ecommerce.common.XssUtils;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
@@ -10,6 +9,7 @@ import java.io.IOException;
 
 /**
  * XSS 过滤器。
+ *
  * @Component 让 Spring 自动注册这个过滤器。
  * 所有 HTTP 请求在到达 Controller 之前，都会经过这个过滤器。
  * 过滤器会自动清理请求参数中的 XSS 攻击内容。

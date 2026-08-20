@@ -2,28 +2,24 @@ package com.example.ecommerce.config;
 
 import com.example.ecommerce.utils.RedisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * API 限流过滤器。
- *
+ * <p>
  * 注意：本类位于 config 包，不属于 security 包。
  * 它是一个普通的 Servlet Filter（非 Spring Security Filter），
  * 不依赖 Spring Security 的任何类。
- *
+ * <p>
  * 基于 Redis 实现滑动窗口计数器：
  * 1. 从请求中获取客户端 IP
  * 2. 以 "rate_limit:{ip}" 为 key，在 Redis 中递增计数

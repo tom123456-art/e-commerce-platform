@@ -98,15 +98,14 @@ public class RedisConfig {
     /**
      * 【教学】配置 RedisTemplate Bean
      *
+     * @param factory Redis 连接工厂（由 Spring Boot 自动配置创建）
+     * @return 已完成序列化配置的 RedisTemplate
      * @Bean 注解告诉 Spring：这个方法的返回值是一个 Bean，需要注册到 Spring 容器中。
      * 方法参数 RedisConnectionFactory 由 Spring 自动注入（它在 spring-boot-starter-data-redis
      * 的自动配置类 RedisAutoConfiguration 中创建）。
-     *
+     * <p>
      * RedisConnectionFactory 负责管理与 Redis 服务器的连接，底层使用 Lettuce 客户端库。
      * Spring Boot 自动配置会根据 application.yml 中的 spring.data.redis.* 配置创建连接工厂。
-     *
-     * @param factory Redis 连接工厂（由 Spring Boot 自动配置创建）
-     * @return 已完成序列化配置的 RedisTemplate
      */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
@@ -152,10 +151,10 @@ public class RedisConfig {
     public CacheManager cacheManager(RedisConnectionFactory factory) {
         // 默认配置：TTL 30 分钟，JSON 序列化
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(30))
-            .disableCachingNullValues() // 不缓存 null（穿透防护由业务层处理）
-            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+                .entryTtl(Duration.ofMinutes(30))
+                .disableCachingNullValues() // 不缓存 null（穿透防护由业务层处理）
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
         // 各缓存名称的独立 TTL 配置
         Map<String, RedisCacheConfiguration> cacheConfigs = new HashMap<>();
@@ -165,23 +164,22 @@ public class RedisConfig {
         cacheConfigs.put("products:recommend", defaultConfig.entryTtl(Duration.ofMinutes(15)));
 
         return RedisCacheManager.builder(factory)
-            .cacheDefaults(defaultConfig)
-            .withInitialCacheConfigurations(cacheConfigs)
-            .transactionAware() // 支持事务环境下缓存与数据库一致性
-            .build();
+                .cacheDefaults(defaultConfig)
+                .withInitialCacheConfigurations(cacheConfigs)
+                .transactionAware() // 支持事务环境下缓存与数据库一致性
+                .build();
     }
 
     /**
      * 【教学】Redis 启动健康检查
-     *
+     * <p>
      * ApplicationRunner 接口的 run() 方法会在 Spring Boot 应用完全启动后自动调用。
      * 这里用它来检查 Redis 服务是否可用，如果不可用只记录警告（不阻止应用启动）。
      *
-     * @Profile("!test")：在测试环境下不执行此检查（避免测试环境没有 Redis 时报错）
-     * @ConditionalOnProperty：允许通过配置项禁用此检查
-     *
      * @param factory Redis 连接工厂
      * @return 应用启动后执行的 Redis 检查任务
+     * @Profile("!test")：在测试环境下不执行此检查（避免测试环境没有 Redis 时报错）
+     * @ConditionalOnProperty：允许通过配置项禁用此检查
      */
     @Bean
     @Profile("!test")

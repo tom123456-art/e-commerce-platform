@@ -27,17 +27,15 @@ import java.util.List;
  * Spring Security 核心配置类。
  *
  * @EnableWebSecurity：启用 Spring Security 的 Web 安全功能
- * @EnableMethodSecurity：启用方法级权限控制（@PreAuthorize("hasRole('ADMIN')")）
- *
- * 本类定义了：
- *   1. 密码编码器（BCrypt + 历史兼容）
- *   2. 认证管理器（用户登录验证）
- *   3. 安全过滤器链（URL 权限规则 + CORS + Token 过滤器）
- *
+ * @EnableMethodSecurity：启用方法级权限控制（@PreAuthorize("hasRole('ADMIN')")） 本类定义了：
+ * 1. 密码编码器（BCrypt + 历史兼容）
+ * 2. 认证管理器（用户登录验证）
+ * 3. 安全过滤器链（URL 权限规则 + CORS + Token 过滤器）
+ * <p>
  * ⚠️ 本类不使用构造器注入，所有 @Bean 依赖通过方法参数注入，
- *    以避免与 TokenAuthenticationFilter 形成循环依赖：
- *    SecurityConfig -> TokenAuthenticationFilter -> TokenService -> UserServiceImpl -> PasswordEncoder(@Bean in SecurityConfig) -> 循环
- *
+ * 以避免与 TokenAuthenticationFilter 形成循环依赖：
+ * SecurityConfig -> TokenAuthenticationFilter -> TokenService -> UserServiceImpl -> PasswordEncoder(@Bean in SecurityConfig) -> 循环
+ * <p>
  * 完整的认证流程讲解见 03-用户认证模块。
  */
 @Configuration
@@ -49,12 +47,12 @@ public class SecurityConfig {
     /**
      * 密码编码器。
      * 使用自定义的 LegacyCompatiblePasswordEncoder：
-     *   - 新密码用 BCrypt 加密存储
-     *   - 兼容历史遗留的明文密码（登录时自动升级为 BCrypt）
-     *
+     * - 新密码用 BCrypt 加密存储
+     * - 兼容历史遗留的明文密码（登录时自动升级为 BCrypt）
+     * <p>
      * ⚠️ 此 Bean 独立于构造器注入，因为 UserServiceImpl 依赖 PasswordEncoder，
-     *    而 TokenService 依赖 UserService、TokenAuthenticationFilter 依赖 TokenService，
-     *    若 PasswordEncoder 放在需要构造器注入的类中会形成循环依赖。
+     * 而 TokenService 依赖 UserService、TokenAuthenticationFilter 依赖 TokenService，
+     * 若 PasswordEncoder 放在需要构造器注入的类中会形成循环依赖。
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,7 +62,7 @@ public class SecurityConfig {
     /**
      * 认证提供者：将 UserDetailsService + PasswordEncoder 组装在一起。
      * 登录时 Spring Security 调用此提供者验证用户名和密码。
-     *
+     * <p>
      * 依赖通过方法参数注入（而非构造器），避免与 TokenAuthenticationFilter 形成循环依赖。
      */
     @Bean
@@ -76,7 +74,9 @@ public class SecurityConfig {
         return provider;
     }
 
-    /** 认证管理器：供 AuthService 在登录时调用 authenticate() 方法 */
+    /**
+     * 认证管理器：供 AuthService 在登录时调用 authenticate() 方法
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -84,65 +84,65 @@ public class SecurityConfig {
 
     /**
      * 安全过滤器链 -- 定义 URL 级别的访问控制规则。
-     *
+     * <p>
      * 规则匹配顺序：从上到下，第一个匹配的规则生效。
-     *
+     * <p>
      * 设计原则：
-     *   - 公开接口（permitAll）：注册、登录、Swagger、商品浏览
-     *   - 管理员接口（hasRole("ADMIN")）：用户管理、商品增删改、Excel 导入导出
-     *   - 商家接口（hasRole("MERCHANT")）：商家中心
-     *   - 认证接口（authenticated）：购物车、订单、支付、地址
+     * - 公开接口（permitAll）：注册、登录、Swagger、商品浏览
+     * - 管理员接口（hasRole("ADMIN")）：用户管理、商品增删改、Excel 导入导出
+     * - 商家接口（hasRole("MERCHANT")）：商家中心
+     * - 认证接口（authenticated）：购物车、订单、支付、地址
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                    TokenAuthenticationFilter tokenAuthenticationFilter) throws Exception {
+                                                   TokenAuthenticationFilter tokenAuthenticationFilter) throws Exception {
         http
-            // 启用 CORS（跨域），使用下方定义的 corsConfigurationSource
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 禁用 CSRF：本项目使用无状态 Token 认证，不依赖 Cookie，无需 CSRF 防护
-            .csrf(csrf -> csrf.disable())
-            // 会话策略：STATELESS 表示不创建 HttpSession，每次请求独立认证
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // 自定义 401/403 响应格式（返回 JSON 而非默认 HTML 错误页）
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(401);
-                    response.getWriter().write(
-                        "{\"success\":false,\"code\":401,\"message\":\"Please login first\"}");
-                })
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(403);
-                    response.getWriter().write(
-                        "{\"success\":false,\"code\":403,\"message\":\"No permission\"}");
-                }))
-            // URL 权限规则
-            .authorizeHttpRequests(auth -> auth
-                // 公开接口：OPTIONS 预检请求、注册登录、Swagger 文档
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                // 公开接口：商品浏览（GET 请求）
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                // 公开接口：支付宝异步回调（服务端到服务端调用，不带用户 Token，已在 PaymentController 放行）
-                .requestMatchers("/api/payment/callback").permitAll()
-                // 公开接口：Mock 支付成功页（支付宝 mock 跳转为浏览器发起，通常不带用户 Token）
-                .requestMatchers("/api/payment/mock/success").permitAll()
-                // 管理员接口：用户管理、Excel 导入导出、后台管理
-                .requestMatchers("/api/users/**", "/api/excel/**", "/api/admin/**").hasRole("ADMIN")
-                // 管理员接口：商品的增删改（GET 已公开）
-                .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
-                // 商家接口
-                .requestMatchers("/api/merchant/**").hasRole("MERCHANT")
-                // 其他所有接口需要认证
-                .anyRequest().authenticated())
-            // 将 Token 过滤器插入到 UsernamePasswordAuthenticationFilter 之前
-            // 这样每个请求先经过 Token 解析，再进入 Spring Security 的认证流程
-            .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // 启用 CORS（跨域），使用下方定义的 corsConfigurationSource
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // 禁用 CSRF：本项目使用无状态 Token 认证，不依赖 Cookie，无需 CSRF 防护
+                .csrf(csrf -> csrf.disable())
+                // 会话策略：STATELESS 表示不创建 HttpSession，每次请求独立认证
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 自定义 401/403 响应格式（返回 JSON 而非默认 HTML 错误页）
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write(
+                                    "{\"success\":false,\"code\":401,\"message\":\"Please login first\"}");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(403);
+                            response.getWriter().write(
+                                    "{\"success\":false,\"code\":403,\"message\":\"No permission\"}");
+                        }))
+                // URL 权限规则
+                .authorizeHttpRequests(auth -> auth
+                        // 公开接口：OPTIONS 预检请求、注册登录、Swagger 文档
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // 公开接口：商品浏览（GET 请求）
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        // 公开接口：支付宝异步回调（服务端到服务端调用，不带用户 Token，已在 PaymentController 放行）
+                        .requestMatchers("/api/payment/callback").permitAll()
+                        // 公开接口：Mock 支付成功页（支付宝 mock 跳转为浏览器发起，通常不带用户 Token）
+                        .requestMatchers("/api/payment/mock/success").permitAll()
+                        // 管理员接口：用户管理、Excel 导入导出、后台管理
+                        .requestMatchers("/api/users/**", "/api/excel/**", "/api/admin/**").hasRole("ADMIN")
+                        // 管理员接口：商品的增删改（GET 已公开）
+                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                        // 商家接口
+                        .requestMatchers("/api/merchant/**").hasRole("MERCHANT")
+                        // 其他所有接口需要认证
+                        .anyRequest().authenticated())
+                // 将 Token 过滤器插入到 UsernamePasswordAuthenticationFilter 之前
+                // 这样每个请求先经过 Token 解析，再进入 Spring Security 的认证流程
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -152,7 +152,7 @@ public class SecurityConfig {
      * Cross-Origin Resource Sharing
      * 前后端分离架构中，前端（localhost:3000）和后端（localhost:8080）端口不同，
      * 浏览器的同源策略会阻止跨域请求，需要后端显式允许。
-     *
+     * <p>
      * 生产环境应将 allowedOrigins 改为实际的前端域名。
      */
     @Bean

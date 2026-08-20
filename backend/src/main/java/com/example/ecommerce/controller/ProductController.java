@@ -2,7 +2,6 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.common.PagedResponse;
 import com.example.ecommerce.common.Result;
-import com.example.ecommerce.dto.ProductDetailResponse;
 import com.example.ecommerce.dto.ProductQueryRequest;
 import com.example.ecommerce.dto.ProductShowcaseResponse;
 import com.example.ecommerce.entity.Product;
@@ -11,8 +10,6 @@ import com.example.ecommerce.service.ProductMetricService;
 import com.example.ecommerce.service.ProductService;
 import com.example.ecommerce.utils.ExcelUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.poi.hssf.record.MulBlankRecord;
-import org.springframework.beans.factory.config.CustomEditorConfigurer;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +22,10 @@ import java.util.Map;
 
 /**
  * 商品管理控制器，处理商品的CRUD、查询、导入导出
+ *
  * @Tag :Swagger文档分组标签，在SwaggerUI中按照标签分类展示接口
  */
-@Tag(name="商品接口", description = "商品查询与管理")
+@Tag(name = "商品接口", description = "商品查询与管理")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -43,6 +41,9 @@ public class ProductController {
 
     /**
      * 根据id获取商品
+     *
+     * @param id     商品id，@PathVariable：从URL路径中提取{id}变量，自动转换为Long
+     * @param userId 用户ID
      * @return
      */
 //    @GetMapping("/{id}")
@@ -61,11 +62,10 @@ public class ProductController {
 //        }
 //        return Result.success(product);
 //    }
-
     @GetMapping("/{id}")
-    public Result<Product> getById(@PathVariable Long id, Authentication authentication){
+    public Result<Product> getById(@PathVariable Long id, Authentication authentication) {
         Product product = productService.getById(id);
-        if (product != null && !isAdmin(authentication)){
+        if (product != null && !isAdmin(authentication)) {
             productMetricService.recordProductView(
                     id, resolveUserId(authentication), "DETAIL"
             );
@@ -73,11 +73,12 @@ public class ProductController {
         return Result.success(product);
     }
 
-    private boolean isAdmin(Authentication auth){
+    private boolean isAdmin(Authentication auth) {
         return auth != null && auth.getPrincipal() instanceof CustomUserDetails &&
                 ((CustomUserDetails) auth.getPrincipal()).isAdmin();
     }
-    private Long resolveUserId(Authentication auth){
+
+    private Long resolveUserId(Authentication auth) {
         return auth != null && auth.getPrincipal() instanceof CustomUserDetails ?
                 ((CustomUserDetails) auth.getPrincipal()).getId() : null;
     }
@@ -119,35 +120,38 @@ public class ProductController {
     /**
      * 删除商品
      * api/products/{id}
+     *
      * @param id
      * @return
      */
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id){
+    public Result<Void> delete(@PathVariable Long id) {
         productService.deleteById(id);
         return Result.success();
     }
 
     /**
      * 获取热销商品
-     * @RequestParam 从查询字符串中提取参数，defaultValue表示默认值
+     *
      * @return
+     * @RequestParam 从查询字符串中提取参数，defaultValue表示默认值
      */
     @GetMapping("/hot")
     public Result<List<ProductShowcaseResponse>> getHotProducts(
-            @RequestParam(defaultValue = "6") Integer limit){
-        return Result.success(productService.getHotProducts(limit == null ? 6: limit));
+            @RequestParam(defaultValue = "6") Integer limit) {
+        return Result.success(productService.getHotProducts(limit == null ? 6 : limit));
     }
 
     /**
      * 获取推荐商品
-     * @RequestParam 从查询字符串中提取参数，defaultValue表示默认值
+     *
      * @return
+     * @RequestParam 从查询字符串中提取参数，defaultValue表示默认值
      */
     @GetMapping("/recommended")
     public Result<List<ProductShowcaseResponse>> getRecommendedProducts(
             @RequestParam(defaultValue = "6") Integer limit,
-            Authentication authentication){
+            Authentication authentication) {
         Long userId = (authentication != null &&
                 authentication.getPrincipal() instanceof CustomUserDetails) ?
                 ((CustomUserDetails) authentication.getPrincipal()).getId() : null;
@@ -158,32 +162,27 @@ public class ProductController {
 
     /**
      * 获取商品分类
+     *
      * @return
      */
     @GetMapping("/category/{categoryId}")
-    public Result<List<Product>> getByCategoryId(@PathVariable Integer categoryId){
+    public Result<List<Product>> getByCategoryId(@PathVariable Integer categoryId) {
         return Result.success(productService.getByCategoryId(categoryId));
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<Map<String, Object>> importProducts(
-            @RequestParam("file")MultipartFile file) throws IOException {
+            @RequestParam("file") MultipartFile file) throws IOException {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("文件不能为空");
         if (file.getSize() > 5 * 1024 * 1024)
             throw new IllegalArgumentException("文件大小不能超过5MB");
         List<Product> products = ExcelUtil.parseProducts(file.getInputStream());
         int i = productService.importProducts(products);
-        Map<String,Object> result = new LinkedHashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
         result.put("fileName", file.getOriginalFilename());
         result.put("importCount", i);
         return Result.success(result);
-    }
-
-    @GetMapping("/{id}/detail")
-    public Result<ProductDetailResponse> getDetailById(@PathVariable Long id, Authentication authentication) {
-        ProductDetailResponse detail = productService.getDetailById(id);
-        return Result.success(detail);
     }
 
 }

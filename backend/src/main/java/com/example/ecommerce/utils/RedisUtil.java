@@ -267,9 +267,9 @@ public class RedisUtil {
     public Set<String> keys(String pattern) {
         Set<String> keys = redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
             ScanOptions scanOptions = ScanOptions.scanOptions()
-                .match(pattern)
-                .count(200)  // 每次扫描 200 个键
-                .build();
+                    .match(pattern)
+                    .count(200)  // 每次扫描 200 个键
+                    .build();
             Set<String> matchedKeys = new LinkedHashSet<>();
             // 教学点：使用 try-with-resources 自动关闭 Cursor
             try (var cursor = connection.keyCommands().scan(scanOptions)) {

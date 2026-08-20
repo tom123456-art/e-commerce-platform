@@ -9,13 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(properties = {
-    "spring.autoconfigure.exclude=" +
-            "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
-            "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
-            "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
+        "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration," +
+                "org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration"
 })
 @ActiveProfiles("test")
 @Transactional

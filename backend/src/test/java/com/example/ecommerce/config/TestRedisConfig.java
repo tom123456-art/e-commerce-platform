@@ -19,7 +19,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 @TestConfiguration
 public class TestRedisConfig {
 
-    /** 内存版 RedisUtil，真实模拟 set/get/increment/keys 等行为，不连接真实 Redis */
+    /**
+     * 内存版 RedisUtil，真实模拟 set/get/increment/keys 等行为，不连接真实 Redis
+     */
     @Bean
     @Primary
     public RedisUtil redisUtil() {

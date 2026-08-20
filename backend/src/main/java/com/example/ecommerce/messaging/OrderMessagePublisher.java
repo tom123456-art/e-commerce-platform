@@ -11,27 +11,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 订单消息生产者 —— 发布订单和支付事件到 RabbitMQ。
  *
  * @Service：标记为 Spring Service 组件
- *
+ * <p>
  * 职责：
- *   - publishOrderCreated：订单创建后发布消息（异步扣减库存、发送通知等）
- *   - publishPaymentStatus：支付状态变更后发布消息（异步更新订单状态）
- *   - publishToDeadLetter：超过最大重试次数后，将消息发送到死信队列
- *
+ * - publishOrderCreated：订单创建后发布消息（异步扣减库存、发送通知等）
+ * - publishPaymentStatus：支付状态变更后发布消息（异步更新订单状态）
+ * - publishToDeadLetter：超过最大重试次数后，将消息发送到死信队列
+ * <p>
  * 设计要点：
- *   1. 优雅降级：RabbitMQ 不可用时（rabbitEnabled=false），消息发布跳过，不影响主业务
- *   2. Publisher Confirm：消息到达 Broker 时回调确认
- *   3. 消息元数据：携带 messageId、发送时间、路由键等，便于追踪
+ * 1. 优雅降级：RabbitMQ 不可用时（rabbitEnabled=false），消息发布跳过，不影响主业务
+ * 2. Publisher Confirm：消息到达 Broker 时回调确认
+ * 3. 消息元数据：携带 messageId、发送时间、路由键等，便于追踪
  */
 @Service
 public class OrderMessagePublisher {
@@ -48,9 +44,8 @@ public class OrderMessagePublisher {
     /**
      * 构造器注入，通过 @Value 读取 RabbitMQ 配置。
      *
-     * @Value("${ecommerce.rabbit.enabled:true}")：
-     *   读取 ecommerce.rabbit.enabled 配置项，默认 true（配置不存在时启用）
-     *   测试环境可设为 false 禁用 RabbitMQ
+     * @Value("${ecommerce.rabbit.enabled:true}")： 读取 ecommerce.rabbit.enabled 配置项，默认 true（配置不存在时启用）
+     * 测试环境可设为 false 禁用 RabbitMQ
      */
     public OrderMessagePublisher(RabbitTemplate rabbitTemplate,
                                  @Value("${ecommerce.rabbit.enabled:true}") boolean rabbitEnabled,
@@ -68,10 +63,10 @@ public class OrderMessagePublisher {
 
     /**
      * 发布"订单已创建"消息。
-     *
+     * <p>
      * 触发场景：用户下单成功后，OrderService 调用此方法。
      * 消费者收到消息后可以：扣减库存、发送通知、更新统计等（异步处理）。
-     *
+     * <p>
      * 优雅降级：rabbitEnabled=false 或 order=null 时直接返回，不发布消息
      */
     public void publishOrderCreated(Order order, List<OrderItem> orderItems) {
@@ -84,8 +79,8 @@ public class OrderMessagePublisher {
         message.setUserId(order.getUserId());
         message.setTotalAmount(order.getTotalAmount());
         message.setProductIds(orderItems == null
-            ? Collections.emptyList()
-            : orderItems.stream().map(OrderItem::getProductId).collect(Collectors.toList()));
+                ? Collections.emptyList()
+                : orderItems.stream().map(OrderItem::getProductId).collect(Collectors.toList()));
         // 发送到主交换机，路由键为队列名（约定：路由键 = 队列名）
         send(exchange, orderCreatedQueue, message, Collections.emptyMap(), true);
     }
@@ -107,12 +102,12 @@ public class OrderMessagePublisher {
 
     /**
      * 将消息发送到死信队列（超过最大重试次数后调用）。
-     *
+     * <p>
      * 携带诊断信息：
-     *   - x-original-routing-key：原始路由键
-     *   - x-retry-count：重试次数
-     *   - x-dead-letter-at：进入死信队列的时间
-     *   - x-last-error：最后一次错误信息
+     * - x-original-routing-key：原始路由键
+     * - x-retry-count：重试次数
+     * - x-dead-letter-at：进入死信队列的时间
+     * - x-last-error：最后一次错误信息
      */
     public void publishToDeadLetter(String originalRoutingKey, Object payload, int retryCount, String errorMessage) {
         Map<String, Object> headers = new LinkedHashMap<>();
@@ -128,7 +123,7 @@ public class OrderMessagePublisher {
 
     /**
      * 底层发送方法。
-     *
+     * <p>
      * CorrelationData：Publisher Confirm 机制的回调 ID，用于确认消息是否到达 Broker
      * enrichMessage：在发送前为消息添加元数据（messageId、发送时间、路由键）
      *
@@ -139,8 +134,8 @@ public class OrderMessagePublisher {
         CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
         try {
             rabbitTemplate.convertAndSend(exchangeName, routingKey, payload,
-                message -> enrichMessage(message, routingKey, headers, correlationData),
-                correlationData);
+                    message -> enrichMessage(message, routingKey, headers, correlationData),
+                    correlationData);
         } catch (Exception ex) {
             if (swallowErrors) {
                 // 主业务消息发送失败不影响业务（消息丢失比阻塞业务更可接受）
@@ -151,7 +146,9 @@ public class OrderMessagePublisher {
         }
     }
 
-    /** 为消息添加元数据：messageId、路由键、发送时间、自定义 headers */
+    /**
+     * 为消息添加元数据：messageId、路由键、发送时间、自定义 headers
+     */
     private Message enrichMessage(Message message, String routingKey,
                                   Map<String, Object> headers, CorrelationData correlationData) {
         message.getMessageProperties().setMessageId(correlationData.getId());

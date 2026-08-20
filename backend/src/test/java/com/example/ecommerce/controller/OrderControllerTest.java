@@ -3,10 +3,10 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.common.Result;
 import com.example.ecommerce.config.SecurityConfig;
 import com.example.ecommerce.config.TestRedisConfig;
-import com.example.ecommerce.security.TokenAuthenticationFilter;
 import com.example.ecommerce.entity.Order;
 import com.example.ecommerce.security.CustomUserDetails;
 import com.example.ecommerce.security.CustomUserDetailsService;
+import com.example.ecommerce.security.TokenAuthenticationFilter;
 import com.example.ecommerce.security.TokenService;
 import com.example.ecommerce.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +19,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -27,13 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,21 +56,31 @@ class OrderControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /** 被 Mock 的订单服务，所有业务逻辑均由 stub 驱动，不触达数据库 */
+    /**
+     * 被 Mock 的订单服务，所有业务逻辑均由 stub 驱动，不触达数据库
+     */
     @MockitoBean
     private OrderService orderService;
 
-    /** 被 Mock 的 Token 解析服务，用于注入"已登录用户"身份 */
+    /**
+     * 被 Mock 的 Token 解析服务，用于注入"已登录用户"身份
+     */
     @MockitoBean
     private TokenService tokenService;
 
-    /** 被 Mock 的用户详情服务：SecurityConfig 的 authenticationProvider 依赖它，测试中不触达真实实现 */
+    /**
+     * 被 Mock 的用户详情服务：SecurityConfig 的 authenticationProvider 依赖它，测试中不触达真实实现
+     */
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
 
-    /** 普通用户：id=2，只有 ROLE_USER */
+    /**
+     * 普通用户：id=2，只有 ROLE_USER
+     */
     private CustomUserDetails userDetails;
-    /** 管理员：id=1，拥有 ROLE_USER + ROLE_ADMIN */
+    /**
+     * 管理员：id=1，拥有 ROLE_USER + ROLE_ADMIN
+     */
     private CustomUserDetails adminDetails;
 
     /**
@@ -86,12 +90,12 @@ class OrderControllerTest {
     @BeforeEach
     void setUpTokens() {
         userDetails = new CustomUserDetails(
-            2L, "user1", "password", 1,
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                2L, "user1", "password", 1,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );
         adminDetails = new CustomUserDetails(
-            1L, "admin", "password", 1,
-            Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
+                1L, "admin", "password", 1,
+                Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"))
         );
         when(tokenService.parseToken("user-token")).thenReturn(userDetails);
         when(tokenService.parseToken("admin-token")).thenReturn(adminDetails);
@@ -111,8 +115,8 @@ class OrderControllerTest {
         when(orderService.getByUserId(2L)).thenReturn(Collections.singletonList(own));
 
         mockMvc.perform(get("/api/orders").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].userId").value(2));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].userId").value(2));
 
         verify(orderService).getByUserId(2L);
     }
@@ -122,13 +126,17 @@ class OrderControllerTest {
      */
     @Test
     void getAll_asAdmin_returnsAllOrders() throws Exception {
-        Order o1 = new Order(); o1.setId(1L); o1.setUserId(2L);
-        Order o2 = new Order(); o2.setId(2L); o2.setUserId(3L);
+        Order o1 = new Order();
+        o1.setId(1L);
+        o1.setUserId(2L);
+        Order o2 = new Order();
+        o2.setId(2L);
+        o2.setUserId(3L);
         when(orderService.getAll()).thenReturn(Arrays.asList(o1, o2));
 
         mockMvc.perform(get("/api/orders").header("Authorization", "Bearer admin-token"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.length()").value(2));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2));
 
         verify(orderService).getAll();
     }
@@ -146,8 +154,8 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(own);
 
         mockMvc.perform(get("/api/orders/1").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.userId").value(2));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId").value(2));
     }
 
     /**
@@ -162,8 +170,8 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(others);
 
         mockMvc.perform(get("/api/orders/1").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
     }
 
     /**
@@ -174,8 +182,8 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(null);
 
         mockMvc.perform(get("/api/orders/1").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value(Result.NOT_FOUND_CODE));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(Result.NOT_FOUND_CODE));
     }
 
     /**
@@ -184,8 +192,8 @@ class OrderControllerTest {
     @Test
     void getByUserId_asUser_otherUser_returns403() throws Exception {
         mockMvc.perform(get("/api/orders/user/99").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
     }
 
     /**
@@ -199,8 +207,8 @@ class OrderControllerTest {
         when(orderService.getByUserId(2L)).thenReturn(Collections.singletonList(own));
 
         mockMvc.perform(get("/api/orders/user/2").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].userId").value(2));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].userId").value(2));
     }
 
     /**
@@ -214,8 +222,8 @@ class OrderControllerTest {
         when(orderService.getByUserId(99L)).thenReturn(Collections.singletonList(others));
 
         mockMvc.perform(get("/api/orders/user/99").header("Authorization", "Bearer admin-token"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].userId").value(99));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].userId").value(99));
     }
 
     // ==================== 创建订单：userId 强制绑定 ====================
@@ -227,13 +235,13 @@ class OrderControllerTest {
     @Test
     void save_asUser_forcesUserIdToCurrentUser() throws Exception {
         String body = "{\"order\":{\"userId\":99,\"address\":\"a\",\"phone\":\"13800138000\",\"receiver\":\"r\"},"
-            + "\"orderItems\":[{\"productId\":1,\"quantity\":2}]}";
+                + "\"orderItems\":[{\"productId\":1,\"quantity\":2}]}";
 
         mockMvc.perform(post("/api/orders")
-                .header("Authorization", "Bearer user-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-            .andExpect(status().isOk());
+                        .header("Authorization", "Bearer user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
 
         var orderCaptor = forClass(Order.class);
         verify(orderService).save(orderCaptor.capture(), any());
@@ -246,13 +254,13 @@ class OrderControllerTest {
     @Test
     void save_asAdmin_keepsProvidedUserId() throws Exception {
         String body = "{\"order\":{\"userId\":99,\"address\":\"a\",\"phone\":\"13800138000\",\"receiver\":\"r\"},"
-            + "\"orderItems\":[{\"productId\":1,\"quantity\":1}]}";
+                + "\"orderItems\":[{\"productId\":1,\"quantity\":1}]}";
 
         mockMvc.perform(post("/api/orders")
-                .header("Authorization", "Bearer admin-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-            .andExpect(status().isOk());
+                        .header("Authorization", "Bearer admin-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
 
         var orderCaptor = forClass(Order.class);
         verify(orderService).save(orderCaptor.capture(), any());
@@ -273,10 +281,10 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(paid);
 
         mockMvc.perform(put("/api/orders")
-                .header("Authorization", "Bearer user-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"targetStatus\":2}"))
-            .andExpect(status().isOk());
+                        .header("Authorization", "Bearer user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"targetStatus\":2}"))
+                .andExpect(status().isOk());
 
         // [FIX-1] 普通用户确认收货只调用 updateStatusByOrderNo，不再调用全字段 update
         verify(orderService).updateStatusByOrderNo(any(), eq(2));
@@ -294,11 +302,11 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(paid);
 
         mockMvc.perform(put("/api/orders")
-                .header("Authorization", "Bearer user-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"targetStatus\":3}"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                        .header("Authorization", "Bearer user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"targetStatus\":3}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
     }
 
     /**
@@ -313,11 +321,11 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(unpaid);
 
         mockMvc.perform(put("/api/orders")
-                .header("Authorization", "Bearer user-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"targetStatus\":2}"))
-            .andExpect(status().isConflict())
-            .andExpect(jsonPath("$.code").value(Result.CONFLICT_CODE));
+                        .header("Authorization", "Bearer user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"targetStatus\":2}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(Result.CONFLICT_CODE));
     }
 
     /**
@@ -332,10 +340,10 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(done);
 
         mockMvc.perform(put("/api/orders")
-                .header("Authorization", "Bearer user-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"targetStatus\":2}"))
-            .andExpect(status().isOk());
+                        .header("Authorization", "Bearer user-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"targetStatus\":2}"))
+                .andExpect(status().isOk());
 
         // [FIX-1] 已收货订单确认收货：状态机允许(2->2)幂等，调用 updateStatusByOrderNo，不再调用全字段 update
         verify(orderService, never()).update(any());
@@ -355,10 +363,10 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(existing);
 
         mockMvc.perform(put("/api/orders")
-                .header("Authorization", "Bearer admin-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"id\":1,\"address\":\"new address\"}"))
-            .andExpect(status().isOk());
+                        .header("Authorization", "Bearer admin-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":1,\"address\":\"new address\"}"))
+                .andExpect(status().isOk());
 
         verify(orderService).update(any(Order.class));
     }
@@ -376,8 +384,8 @@ class OrderControllerTest {
         when(orderService.getById(1L)).thenReturn(others);
 
         mockMvc.perform(delete("/api/orders/1").header("Authorization", "Bearer user-token"))
-            .andExpect(status().isForbidden())
-            .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(Result.FORBIDDEN_CODE));
 
         verify(orderService, never()).delete(any(Long.class));
     }

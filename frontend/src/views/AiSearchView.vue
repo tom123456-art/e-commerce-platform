@@ -41,7 +41,7 @@
           <span class="result-price">¥{{ product.price }}</span>
         </div>
         <p class="result-reason">{{ product.reason }}</p>
-        <router-link :to="`/product/${product.id}`" class="btn btn-secondary compact">
+        <router-link :to="`/products/${product.id}`" class="btn btn-secondary compact">
           查看详情
         </router-link>
       </div>

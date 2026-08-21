@@ -1,7 +1,7 @@
 <template>
   <div class="editor-page">
     <div class="page-header">
-      <h2>{{ isEdit ? '编辑商品' : '新增商品' }}</h2>
+      <h2 class="mc-title">{{ isEdit ? '编辑商品' : '新增商品' }}</h2>
     </div>
 
     <form class="editor-form" @submit.prevent="handleSubmit">
@@ -67,6 +67,28 @@ const form = ref({
   categoryId: 1, image: '', status: 1
 })
 
+// 编辑模式下，挂载时拉取该商品现有信息回填表单
+onMounted(async () => {
+  if (!isEdit.value) return
+  try {
+    const res = await http.get(`/merchant/products/${route.params.id}`)
+    if (res.data) {
+      const p = res.data
+      form.value = {
+        name: p.name || '',
+        description: p.description || '',
+        price: p.price ?? 0,
+        stock: p.stock ?? 0,
+        categoryId: p.categoryId ?? 1,
+        image: p.image || '',
+        status: p.status ?? 1
+      }
+    }
+  } catch (e) {
+    console.error('加载商品信息失败', e)
+  }
+})
+
 // 处理表单提交的异步函数
 const handleSubmit = async () => {
   loading.value = true
@@ -92,8 +114,7 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.editor-page { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
-.page-header h2 { margin: 0 0 20px; color: #333; }
+.editor-page { max-width: 720px; margin: 0 auto; }
 .editor-form { background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; }

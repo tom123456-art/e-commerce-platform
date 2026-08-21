@@ -1,0 +1,259 @@
+/* ============================================================================
+ * 商家端统一主题 merchant.css
+ * 作用：为商家登录后的所有页面（导航栏 / 数据看板 / 商品 / 评论 / 店铺 / 编辑）
+ *       提供一致的设计语言：配色、卡片、按钮、筛选栏、徽标、弹窗、空状态。
+ * 引入位置：src/MerchantApp.vue（仅商家端变体加载，不影响用户端/管理端）。
+ *
+ * 设计基调：沿用现有商家页已采用的 #667eea 紫色主色，统一圆角 12px、
+ * 浅灰页面背景 #f5f7fa、柔和阴影，提升一致性与现代感。
+ * ========================================================================== */
+
+:root {
+  --mc-primary: #667eea;
+  --mc-primary-dark: #5a67d8;
+  --mc-primary-light: #edf0fe;
+  --mc-bg: #f5f7fa;
+  --mc-card-bg: #ffffff;
+  --mc-text: #303133;
+  --mc-text-muted: #909399;
+  --mc-border: #e4e7ed;
+  --mc-success: #67c23a;
+  --mc-success-bg: #f0f9eb;
+  --mc-danger: #e74c3c;
+  --mc-danger-bg: #fef0f0;
+  --mc-radius: 12px;
+  --mc-radius-sm: 8px;
+  --mc-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --mc-shadow-hover: 0 8px 24px rgba(102, 126, 234, 0.18);
+}
+
+/* ===== 应用根容器 ===== */
+#merchant-app {
+  min-height: 100vh;
+  background: var(--mc-bg);
+  color: var(--mc-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ===== 顶部导航栏 ===== */
+.merchant-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  padding: 0 32px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand a {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--mc-primary);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+.nav-links {
+  display: flex;
+  gap: 6px;
+}
+.nav-links a {
+  padding: 8px 16px;
+  border-radius: var(--mc-radius-sm);
+  color: var(--mc-text);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-links a:hover {
+  background: var(--mc-primary-light);
+  color: var(--mc-primary);
+}
+.nav-links a.router-link-active {
+  background: var(--mc-primary);
+  color: #fff;
+}
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--mc-text-muted);
+}
+.btn-logout,
+.btn-login {
+  padding: 7px 16px;
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius-sm);
+  background: #fff;
+  color: var(--mc-text);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-logout:hover,
+.btn-login:hover {
+  border-color: var(--mc-primary);
+  color: var(--mc-primary);
+}
+
+/* ===== 主内容区 ===== */
+.merchant-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 40px;
+}
+
+/* ===== 页面标题 ===== */
+.mc-title {
+  margin: 0 0 24px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--mc-text);
+}
+
+/* ===== 通用卡片 ===== */
+.mc-card {
+  background: var(--mc-card-bg);
+  border-radius: var(--mc-radius);
+  box-shadow: var(--mc-shadow);
+  padding: 20px;
+}
+
+/* ===== 通用按钮 ===== */
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 18px;
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius-sm);
+  background: #fff;
+  color: var(--mc-text);
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.mc-btn:hover {
+  border-color: var(--mc-primary);
+  color: var(--mc-primary);
+}
+.mc-btn-primary {
+  background: var(--mc-primary);
+  border-color: var(--mc-primary);
+  color: #fff;
+}
+.mc-btn-primary:hover {
+  background: var(--mc-primary-dark);
+  border-color: var(--mc-primary-dark);
+  color: #fff;
+}
+.mc-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.mc-btn-danger {
+  background: #fff;
+  border-color: var(--mc-danger);
+  color: var(--mc-danger);
+}
+.mc-btn-danger:hover {
+  background: var(--mc-danger);
+  color: #fff;
+}
+
+/* ===== 筛选栏（输入框 / 下拉） ===== */
+.mc-filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.mc-filter input,
+.mc-filter select {
+  padding: 9px 12px;
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius-sm);
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.mc-filter input:focus,
+.mc-filter select:focus {
+  border-color: var(--mc-primary);
+}
+
+/* ===== 状态徽标 ===== */
+.mc-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.mc-badge-active {
+  background: var(--mc-success-bg);
+  color: var(--mc-success);
+}
+.mc-badge-inactive {
+  background: #f4f4f5;
+  color: var(--mc-text-muted);
+}
+
+/* ===== 空状态 ===== */
+.mc-empty {
+  text-align: center;
+  color: var(--mc-text-muted);
+  padding: 56px 0;
+  font-size: 14px;
+}
+
+/* ===== 弹窗 ===== */
+.mc-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.mc-dialog {
+  background: #fff;
+  border-radius: var(--mc-radius);
+  padding: 24px;
+  width: 440px;
+  max-width: 92vw;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+.mc-dialog h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: var(--mc-text);
+}
+.mc-dialog textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--mc-border);
+  border-radius: var(--mc-radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+}
+.mc-dialog textarea:focus {
+  border-color: var(--mc-primary);
+}
+.mc-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}

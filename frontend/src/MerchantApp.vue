@@ -32,6 +32,8 @@
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+// 商家端统一主题（导航栏与所有页面共用的设计语言）
+import './styles/merchant.css'
 
 const authStore = useAuthStore()
 const router = useRouter()

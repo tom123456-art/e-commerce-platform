@@ -19,11 +19,22 @@ const http = axios.create({
   }
 })
 
+// 公开接口（登录/注册等）不需要携带 Token，否则后端鉴权过滤器会因携带
+// 过期/无效的 Token 直接返回 401，导致连登录、注册都无法访问。
+const PUBLIC_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/merchant/login',
+  '/merchant/register'
+]
+
 // 请求拦截器：自动添加 Token
 http.interceptors.request.use(
   (config) => {
     const token = getToken()
-    if (token) {
+    // 公开接口不附加 Authorization 头
+    const isPublic = PUBLIC_PATHS.some((p) => (config.url || '').includes(p))
+    if (token && !isPublic) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -45,7 +56,12 @@ http.interceptors.response.use(
       // 401 未授权：清除 Token，跳转登录
       if (status === 401) {
         removeToken()
-        router.push('/login')
+        // 登录/注册等公开接口本身就是去登录页，不要再跳转，避免覆盖错误提示
+        const url = error.config?.url || ''
+        const isPublic = PUBLIC_PATHS.some((p) => url.includes(p))
+        if (!isPublic) {
+          router.push('/login')
+        }
       }
 
       // 403 禁止访问

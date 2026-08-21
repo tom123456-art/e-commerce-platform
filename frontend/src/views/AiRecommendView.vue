@@ -63,7 +63,7 @@
               </span>
             </div>
             <p class="card-reason">{{ item.reason }}</p>
-            <router-link :to="`/product/${item.id}`" class="btn btn-secondary compact">
+            <router-link :to="`/products/${item.id}`" class="btn btn-secondary compact">
               查看详情
             </router-link>
           </div>

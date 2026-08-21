@@ -1,8 +1,8 @@
 <template>
   <div class="reviews-page">
-    <h2>评论管理</h2>
+    <h2 class="mc-title">评论管理</h2>
 
-    <div class="filter-bar">
+    <div class="filter-bar mc-filter">
       <select v-model="filterType">
         <option value="">全部评论</option>
         <option value="pending">待回复</option>
@@ -22,20 +22,22 @@
           <strong>商家回复：</strong>{{ review.reply }}
         </div>
         <div class="review-actions">
-          <button v-if="!review.reply" @click="openReplyDialog(review)" class="btn-reply">回复</button>
-          <button @click="hideReview(review.id)" class="btn-hide">隐藏</button>
+          <button v-if="!review.reply" @click="openReplyDialog(review)" class="mc-btn mc-btn-primary">回复</button>
+          <button @click="hideReview(review.id)" class="mc-btn mc-btn-danger">隐藏</button>
         </div>
       </div>
     </div>
 
+    <div v-if="filteredReviews.length === 0" class="mc-empty">暂无评论</div>
+
     <!-- 回复弹窗 -->
-    <div v-if="showReplyDialog" class="dialog-overlay" @click.self="showReplyDialog = false">
-      <div class="dialog">
+    <div v-if="showReplyDialog" class="mc-dialog-overlay" @click.self="showReplyDialog = false">
+      <div class="mc-dialog">
         <h3>回复评论</h3>
         <textarea v-model="replyContent" rows="4" placeholder="输入回复内容..."></textarea>
-        <div class="dialog-actions">
-          <button @click="showReplyDialog = false" class="btn-cancel">取消</button>
-          <button @click="submitReply" class="btn-confirm">提交</button>
+        <div class="mc-dialog-actions">
+          <button @click="showReplyDialog = false" class="mc-btn">取消</button>
+          <button @click="submitReply" class="mc-btn mc-btn-primary">提交</button>
         </div>
       </div>
     </div>
@@ -61,6 +63,20 @@ const filteredReviews = computed(() => {
     return reviews.value.filter(r => r.reply)
   return reviews.value
 })
+
+// 拉取当前商家的所有评论
+const fetchReviews = async () => {
+  try {
+    const res = await http.get('/merchant/reviews')
+    // http 拦截器已解包 response.data，res 为 Result 包装体，列表在 res.data
+    reviews.value = res.data || []
+  } catch (err) {
+    console.error('加载评论失败', err)
+  }
+}
+
+// 页面加载时拉取评论列表
+onMounted(fetchReviews)
 
 // 提交回复的异步函数
 const openReplyDialog = async (review) => {
@@ -88,7 +104,7 @@ const hideReview = async (id) => {
 // 提交回复的异步函数
 const submitReply = async () => {
   // 如果回复内容是空白的话，直接返回，不发送请求
-  if(!replyContent.value.trim) return
+  if(!replyContent.value.trim()) return
   try {
     await http.post('/merchant/reviews/reply',{
       reviewId: currentReview.value.id,  // 要回复的评论的id
@@ -102,6 +118,53 @@ const submitReply = async () => {
     console.error('回复失败', error)
   }
 }
-
-
 </script>
+
+<style scoped>
+.reviews-page { /* 外层留白由 .merchant-main 提供 */ }
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.review-card {
+  background: var(--mc-card-bg);
+  border-radius: var(--mc-radius);
+  box-shadow: var(--mc-shadow);
+  padding: 18px 20px;
+  transition: box-shadow 0.2s;
+}
+.review-card:hover { box-shadow: var(--mc-shadow-hover); }
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--mc-text-muted);
+}
+.product-id { font-weight: 500; color: var(--mc-text); }
+.rating { color: #f7b500; letter-spacing: 1px; }
+.review-content {
+  font-size: 14px;
+  color: var(--mc-text);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.review-reply {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--mc-text);
+  background: var(--mc-primary-light);
+  border-radius: var(--mc-radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.review-reply strong { color: var(--mc-primary); }
+.review-actions {
+  display: flex;
+  gap: 10px;
+}
+</style>
+

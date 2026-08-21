@@ -85,9 +85,10 @@ const validateForm = () => {
     errors.username = '用户名：4-20位字母、数字或下划线'
     valid = false
   }
-  // 验证密码：8-20位含大小写数字和特殊字符
-  if (!form.password || !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}/.test(form.password)) {
-    errors.password = '密码：8-20位，含大小写字母、数字和特殊字符'
+  // 验证密码：8-20位，含大小写字母、数字和特殊字符（特殊字符集合需与后端 @Pattern 保持一致）
+  // 后端允许的特殊字符：@ # $ % ^ & + = ! _ . -
+  if (!form.password || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!_.-])[A-Za-z\d@#$%^&+=!_.-]{8,20}$/.test(form.password)) {
+    errors.password = '密码：8-20位，含大小写字母、数字和特殊字符（如 @ # $ % ^ & + = ! _ . -）'
     valid = false
   }
   // 验证确认密码
@@ -116,28 +117,29 @@ const validateForm = () => {
 // 处理注册的异步函数
 const handleRegister = async () => {
   error.value = ''
+  // 前端校验如果失败，显示字段错误并直接拦截，不发送请求、不改变 loading 状态
+  if(!validateForm()){
+    error.value = '请检查并完善表单信息'
+    return
+  }
   loading.value = true
-  // 前端校验如果失败直接拦截，不发送请求
-  if(!validateForm) return
-  console.log(1213)
   try {
-    const res = await http.post('/merchant/register', {
+    // 调用商家注册接口；http 拦截器已解包 response.data，请求成功(2xx)即视为注册成功
+    // 后端 MerchantRegisterRequest 必须包含 confirmPassword 字段
+    await http.post('/merchant/register', {
       username: form.username,
       nickname: form.nickname,
       password: form.password,
+      confirmPassword: form.confirmPassword,
       email: form.email,
       phone: form.phone,
       storeName: form.storeName,
       storeDescription: form.storeDescription
     })
-    console.log(res.data)
-    if(res.data){
-      router.push('/login')
-    } else {
-      error.value = '注册失败'
-    }
+    router.push('/login')
   } catch (err) {
-    error.value = err.message || '注册失败'
+    // 优先展示后端返回的业务错误信息（Result.message）
+    error.value = err.response?.data?.message || err.message || '注册失败'
   } finally {
     loading.value = false
   }
@@ -146,7 +148,8 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.register-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f7fa; padding: 40px 16px; }
+/* 与登录页一致：扣除顶部导航 60px 与主内容区上下留白 64px，避免页面出现多余滚动 */
+.register-page { min-height: calc(100vh - 124px); display: flex; align-items: center; justify-content: center; background: #f5f7fa; padding: 20px 16px; }
 .register-card { width: 100%; max-width: 420px; background: #fff; border-radius: 12px; padding: 40px 36px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
 .register-card h1 { margin: 0 0 6px; font-size: 24px; color: #333; }
 .subtitle { margin: 0 0 24px; color: #999; font-size: 14px; }

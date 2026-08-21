@@ -84,6 +84,18 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = res
   }
 
+  /**
+   * 外部登录成功后同步状态（商家端直接走 http 接口登录时使用）：
+   * 仅写 localStorage 不会触发响应式更新，导航栏等组件会停留在"未登录"状态；
+   * 此方法同时更新响应式 token/user 并持久化。
+   */
+  function setAuth(data) {
+    if (!data || !data.token) return
+    token.value = data.token
+    user.value = data.user
+    saveAuth(data)
+  }
+
   // 返回值：暴露给外部使用的 state/getters/actions
-  return { token, user, isLoggedIn, isAdmin, isMerchant, login, register, logout, fetchUser }
+  return { token, user, isLoggedIn, isAdmin, isMerchant, login, register, logout, fetchUser, setAuth }
 })

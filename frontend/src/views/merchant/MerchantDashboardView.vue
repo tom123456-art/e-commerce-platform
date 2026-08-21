@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <h2>数据看板</h2>
+    <h2 class="mc-title">数据看板</h2>
     <div class="stats-grid">
       <div class="stat-card clickable" @click="router.push('/products')">
         <div class="stat-value">{{ stats.totalProducts }}</div>
@@ -72,7 +72,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard h2 { margin: 0 0 24px; color: #333; }
+.dashboard h2.mc-title { margin: 0 0 24px; color: #303133; }
 
 /* CSS Grid 自适应网格：在不同屏幕尺寸下自动调整列数 */
 .stats-grid {

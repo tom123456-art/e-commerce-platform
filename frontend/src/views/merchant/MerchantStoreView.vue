@@ -1,7 +1,7 @@
 <template>
   <div class="store-page">
     <div class="page-header">
-      <h2>店铺信息</h2>
+      <h2 class="mc-title">店铺信息</h2>
     </div>
 
     <form class="store-form" @submit.prevent="handleSave">
@@ -100,8 +100,7 @@ const handleSave = async () => {
 </script>
 
 <style scoped>
-.store-page { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
-.page-header h2 { margin: 0 0 20px; color: #333; }
+.store-page { max-width: 720px; margin: 0 auto; }
 .store-form { background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; margin-bottom: 6px; font-size: 14px; color: #555; }

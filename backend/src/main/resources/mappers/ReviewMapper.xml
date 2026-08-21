@@ -42,11 +42,12 @@
         where id = #{id}
     </update>
 
-    <!-- 更新评价状态 -->
+    <!-- 更新评价状态（必须限定 id，否则会把全表评论状态一起改掉） -->
     <update id="updateStatus">
         update review
         set status      = #{status},
             update_time = now()
+        where id = #{id}
     </update>
 
     <!-- 查询商品的所有评价，status=1是已通过的评价 -->

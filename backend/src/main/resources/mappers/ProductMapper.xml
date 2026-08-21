@@ -51,17 +51,20 @@
                 now())
     </insert>
 
+    <!-- 动态更新：只写入非空字段，避免把未提供的列（尤其 merchant_id）覆盖为 NULL -->
     <update id="update" parameterType="com.example.ecommerce.entity.Product">
         update product
-        set name        = #{name},
-            description = #{description},
-            price       = #{price},
-            stock       = #{stock},
-            image       = #{image},
-            category_id = #{categoryId},
-            merchant_id = #{merchantId},
-            status      = #{status},
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="image != null">image = #{image},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="merchantId != null">merchant_id = #{merchantId},</if>
+            <if test="status != null">status = #{status},</if>
             update_time = now()
+        </set>
         where id = #{id}
     </update>
 

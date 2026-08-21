@@ -123,6 +123,8 @@ public class SecurityConfig {
                         // 公开接口：OPTIONS 预检请求、注册登录、Swagger 文档
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        // 公开接口：商家注册、登录（必须在 /api/merchant/** 规则之前放行）
+                        .requestMatchers("/api/merchant/login", "/api/merchant/register").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // 公开接口：商品浏览（GET 请求）
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()

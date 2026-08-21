@@ -45,9 +45,9 @@ public class MerchantProductController {
         Long merchantId = getMerchantId(token);
         // 获取所有的商品
         List<Product> products = productService.getAll();
-        // 筛选
+        // 筛选（merchantId 可能为 null，需做空值保护避免 NPE）
         List<Product> productList = products.stream().filter(
-                p -> p.getMerchantId().equals(merchantId)
+                p -> p.getMerchantId() != null && p.getMerchantId().equals(merchantId)
         ).collect(Collectors.toList());
         return Result.success(productList);
     }

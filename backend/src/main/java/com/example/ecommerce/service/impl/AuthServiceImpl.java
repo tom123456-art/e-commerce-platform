@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -75,9 +76,15 @@ public class AuthServiceImpl implements AuthService {
         // 然后用BCryptPasswordEncoder验证密码
         // 检查UserDetails是否被禁用
         // 如果以上步骤都通过，则返回一个Authentication对象，如果认证失败，则抛出异常
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
+        } catch (AuthenticationException e) {
+            // 登录失败（用户名不存在或密码错误）统一给出清晰提示，避免返回 "Please login first"
+            throw new BusinessException(Result.UNAUTHORIZED_CODE, "用户名或密码错误");
+        }
         // 2、从认证的结果中提取已认证的用户信息
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         // 3、生成Token然后存入双层缓存（本地+redis）

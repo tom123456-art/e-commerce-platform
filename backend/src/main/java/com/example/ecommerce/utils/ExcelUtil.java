@@ -250,7 +250,7 @@ public class ExcelUtil {
      */
     private static String readCellByField(Row row, Map<Integer, String> map, String field) {
         for (Map.Entry<Integer, String> entry : map.entrySet()) {
-            if (entry.getValue().equals(field)) {
+            if (Objects.equals(entry.getValue(), field)) {
                 Cell cell = row.getCell(entry.getKey());
                 if (cell == null) return null;
                 // 处理公式单元格

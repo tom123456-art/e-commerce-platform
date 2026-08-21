@@ -223,14 +223,27 @@ public class ProductServiceImpl implements ProductService {
     public void update(Product product) {
         // 先查询是否存在，然后再更新
         Long productId = product == null ? null : product.getId();
-        // 查询缓存，如果缓存中存在，则说明商品存在，否则可能不存在
+        // 查询库中原记录，用于保留归属等字段（防止被误清空）
         Product previous =
                 productId == null ? null : productMapper.selectById(productId);
         // 商品字段的校验和规范化处理
         Product normalizedProduct = normalizeProduct(product, true);
+        // 归属商家不允许被清空：mapper 的 update 会无条件写 merchant_id 列，
+        // 入参未携带 merchantId 时保留数据库原值，否则商品会从商家列表中"消失"
+        if (normalizedProduct.getMerchantId() == null && previous != null) {
+            normalizedProduct.setMerchantId(previous.getMerchantId());
+        }
         productMapper.update(normalizedProduct);
         evictProductCaches();
-
+        // 单条商品缓存 product:{id} 不在 evictProductCaches 清理范围内，需单独清除，
+        // 否则商品详情页在缓存 TTL 内会展示旧数据
+        try {
+            if (productId != null) {
+                redisUtil.delete("product:" + productId);
+            }
+        } catch (Exception e) {
+            logger.warn("商品单条缓存清理失败：{}", e.getMessage());
+        }
     }
 
     /**
@@ -247,6 +260,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("商品ID不能为空");
         Product normalizedProduct = new Product();
         normalizedProduct.setId(product.getId());
+        normalizedProduct.setMerchantId(product.getMerchantId());
         normalizedProduct.setName(
                 requireText(product.getName(), "商品名称不能为空"));
         normalizedProduct.setDescription(optionalText(product.getDescription()));
@@ -321,6 +335,12 @@ public class ProductServiceImpl implements ProductService {
     public void deleteById(Long id) {
         productMapper.delete(id);
         evictProductCaches();
+        // 同步清除单条商品缓存
+        try {
+            redisUtil.delete("product:" + id);
+        } catch (Exception e) {
+            logger.warn("商品单条缓存清理失败：{}", e.getMessage());
+        }
     }
 
     /**

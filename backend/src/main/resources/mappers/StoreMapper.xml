@@ -35,16 +35,19 @@
                 #{address}, #{status}, now(), now())
     </insert>
 
+    <!-- 动态更新：只写入非空字段，避免把未提供的列覆盖为 NULL（与 ProductMapper 同模式） -->
     <update id="update" parameterType="com.example.ecommerce.entity.Store">
         update store
-        set store_name        = #{storeName},
-            store_description = #{storeDescription},
-            store_logo        = #{storeLogo},
-            contact_phone     = #{contactPhone},
-            contact_email     = #{contactEmail},
-            address           = #{address},
-            status            = #{status},
-            update_time       = now()
+        <set>
+            <if test="storeName != null">store_name = #{storeName},</if>
+            <if test="storeDescription != null">store_description = #{storeDescription},</if>
+            <if test="storeLogo != null">store_logo = #{storeLogo},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="contactEmail != null">contact_email = #{contactEmail},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = now()
+        </set>
         where id = #{id}
     </update>
 

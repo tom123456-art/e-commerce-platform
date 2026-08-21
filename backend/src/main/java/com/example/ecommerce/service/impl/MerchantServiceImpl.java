@@ -67,7 +67,8 @@ public class MerchantServiceImpl implements MerchantService {
         Store store = new Store();
         store.setMerchantId(savedUser.getId());
         store.setStoreName(request.getStoreName().trim());
-        store.setStoreDescription(request.getStoreDescription().trim());
+        // storeDescription 为选填字段，可能为 null，需做空值保护避免 NPE
+        store.setStoreDescription(request.getStoreDescription() == null ? "" : request.getStoreDescription().trim());
         store.setContactPhone(request.getPhone().trim());
         store.setContactEmail(request.getEmail().trim());
         store.setStatus(1);
@@ -128,7 +129,7 @@ public class MerchantServiceImpl implements MerchantService {
             throw new BusinessException(Result.NOT_FOUND_CODE, "评论不存在");
         // 校验：评论所属的商品是否属于当前商家
         Product product = productMapper.selectById(review.getProductId());
-        if (product == null || !product.getMerchantId().equals(merchantId))
+        if (product == null || !merchantId.equals(product.getMerchantId()))
             throw new BusinessException(Result.FORBIDDEN_CODE, "评论所属商品不存在");
         reviewMapper.updateReply(request.getReviewId(), request.getReply());
         log.info("回复评论成功，评论ID：{}, 商家ID：{}", request.getReviewId(), merchantId);
@@ -146,7 +147,7 @@ public class MerchantServiceImpl implements MerchantService {
         if (review == null)
             throw new BusinessException(Result.NOT_FOUND_CODE, "评论不存在");
         Product product = productMapper.selectById(review.getProductId());
-        if (product == null || !product.getMerchantId().equals(merchantId))
+        if (product == null || !merchantId.equals(product.getMerchantId()))
             throw new BusinessException(Result.FORBIDDEN_CODE, "评论所属商品不存在");
         // 软删除
         reviewMapper.updateStatus(reviewId, 0);
@@ -163,13 +164,14 @@ public class MerchantServiceImpl implements MerchantService {
         MerchantDashboardResponse response = new MerchantDashboardResponse();
         // 获取全平台的所有商品
         List<Product> products = productMapper.selectAll();
-        // 统计当前商家的所有商品
+        // 统计当前商家的所有商品（merchantId 可能为 null，需做空值保护避免 NPE）
         long productCounts = products.stream().filter(
-                p -> p.getMerchantId().equals(merchantId)
+                p -> p.getMerchantId() != null && p.getMerchantId().equals(merchantId)
         ).count();
         // 统计当前商家的所有在售的商品
         long activeProductCounts = products.stream().filter(
-                p -> merchantId.equals(p.getMerchantId()) && p.getStatus() == 1
+                p -> p.getMerchantId() != null && merchantId.equals(p.getMerchantId())
+                        && p.getStatus() != null && p.getStatus() == 1
         ).count();
         // 查询商家的所有评论
         List<Review> reviews = reviewMapper.selectByMerchantProducts(merchantId);
@@ -179,10 +181,11 @@ public class MerchantServiceImpl implements MerchantService {
         long pendingReplies = reviews.stream().filter(
                 r -> r.getReply() == null || r.getReply().isEmpty()
         ).count();
-        // 评分
-        double avgRating = reviews.isEmpty() ? 0 : reviews.stream().mapToInt(
-                Review::getRating
-        ).average().orElse(0);
+        // 评分（rating 可能为 null，过滤后避免拆箱 NPE）
+        double avgRating = reviews.isEmpty() ? 0 : reviews.stream()
+                .filter(r -> r.getRating() != null)
+                .mapToInt(Review::getRating)
+                .average().orElse(0);
         response.setTotalProducts(productCounts);
         response.setActiveProducts(activeProductCounts);
         response.setTotalReviews(totalReviews);

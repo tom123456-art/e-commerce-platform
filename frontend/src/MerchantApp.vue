@@ -30,7 +30,7 @@
 // 3. 通过 router-view 渲染商家后台的各个子页面
 
 import { storeToRefs } from 'pinia'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()

@@ -119,6 +119,7 @@ const handleRegister = async () => {
   loading.value = true
   // 前端校验如果失败直接拦截，不发送请求
   if(!validateForm) return
+  console.log(1213)
   try {
     const res = await http.post('/merchant/register', {
       username: form.username,
@@ -129,6 +130,7 @@ const handleRegister = async () => {
       storeName: form.storeName,
       storeDescription: form.storeDescription
     })
+    console.log(res.data)
     if(res.data){
       router.push('/login')
     } else {

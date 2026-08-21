@@ -2,6 +2,8 @@
 import { defineConfig } from 'vite'
 // vue 插件：让 Vite 能识别和编译 .vue 单文件组件
 import vue from '@vitejs/plugin-vue'
+import { fileURLToPath, URL } from 'node:url'
+
 
 export default defineConfig({
   // define：在「编译时」把代码里的某个表达式替换成固定值
@@ -12,6 +14,11 @@ export default defineConfig({
   },
   // plugins：注册 Vite 插件，vue() 是开发 Vue 项目必装的插件
   plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
   // server：开发服务器（npm run dev 时生效）的配置
   server: {
     port: 3000,   // 用户端开发服务器运行在 3000 端口

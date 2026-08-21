@@ -2,9 +2,9 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 // API 层：与后端 /auth/* 接口对接
 import { login as loginApi, register as registerApi,
-         logout as logoutApi, getCurrentUser } from '@/api/auth'
+         logout as logoutApi, getCurrentUser } from '../api/auth'
 // 工具层：封装 localStorage 读写（即 04 章的 auth.js）
-import { saveAuth, clearAuth, getToken, getCurrentUser as getStoredUser } from '@/utils/auth'
+import { saveAuth, clearAuth, getToken, getCurrentUser as getStoredUser } from '../utils/auth'
 
 /**
  * useAuthStore - 认证状态 Store

@@ -64,12 +64,12 @@ import './style.css'
  */
 const variant = import.meta.env.VITE_APP_VARIANT
 const isAdminApp = variant === 'admin'
-// const isMerchantApp = variant === 'merchant'  // 商户端暂未实现，后续补充时取消注释
+const isMerchantApp = variant === 'merchant'  // 商户端暂未实现，后续补充时取消注释
 
 // ============================================================================
 // 页面标题设置
 // ============================================================================
-// document.title = isMerchantApp ? '优选商城商家中心' : (isAdminApp ? '优选商城管理后台' : '优选商城')  // 商户端标题暂未实现
+document.title = isMerchantApp ? '优选商城商家中心' : (isAdminApp ? '优选商城管理后台' : '优选商城')  // 商户端标题暂未实现
 document.title = isAdminApp ? '优选商城管理后台' : '优选商城'
 
 // ============================================================================

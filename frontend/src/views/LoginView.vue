@@ -165,7 +165,7 @@ export default {
     return {
       form, error, submitting, handleLogin,
       isAdminLogin, introText, introClass,
-      // shopLoginUrl: buildShopUrl('/login')
+      shopLoginUrl: buildShopUrl('/login')
     }
   }
 }
